@@ -8,7 +8,6 @@ import logoMain from "@/assets/logo-main.png";
 import { Home, Shield, LogOut, LogIn } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import Footer from "@/components/Footer";
 
 interface Category {
   id: string;
@@ -83,18 +82,120 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Navigation Bar */}
       <nav className="sticky top-0 z-50 border-b border-border/40 backdrop-blur-lg bg-background/80">
-...
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/")}
+                className="gap-2 hover:bg-accent/10"
+              >
+                <Home className="h-4 w-4" />
+                <span className="hidden sm:inline">الرئيسية</span>
+              </Button>
+              {isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/admin")}
+                  className="gap-2 hover:bg-accent/10"
+                >
+                  <Shield className="h-4 w-4" />
+                  <span className="hidden sm:inline">لوحة التحكم</span>
+                </Button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              {user ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="gap-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">تسجيل الخروج</span>
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/auth")}
+                  className="gap-2"
+                >
+                  <LogIn className="h-4 w-4" />
+                  <span className="hidden sm:inline">تسجيل الدخول</span>
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
       </nav>
 
       {/* Main Content */}
-      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-...
-      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {/* Logo */}
+        <div className="flex justify-center mb-8 sm:mb-12">
+          <img 
+            src={logoMain} 
+            alt="SONS OF TAIBA" 
+            className="h-32 sm:h-40 w-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-300"
+          />
+        </div>
 
-      <Footer />
+        {/* Categories Grid */}
+        {categories.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {categories.map((category) => (
+              <CategoryCard
+                key={category.id}
+                name={category.name}
+                description={category.description}
+                fileCount={fileCounts[category.id] || 0}
+                onClick={() => navigate(`/category/${category.id}`)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted/50 mb-6">
+              <svg
+                className="w-10 h-10 text-muted-foreground"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">
+              لا توجد فئات متاحة حالياً
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              {user && isAdmin
+                ? "ابدأ بإضافة فئة جديدة من لوحة التحكم"
+                : "سيتم إضافة الفئات قريباً"}
+            </p>
+            {user && isAdmin && (
+              <Button onClick={() => navigate("/admin")} className="gap-2">
+                <Shield className="h-4 w-4" />
+                الذهاب إلى لوحة التحكم
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
