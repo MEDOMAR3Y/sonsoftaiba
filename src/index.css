@@ -8,53 +8,53 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 195 100% 97%;
-    --foreground: 200 20% 15%;
+    --background: 200 60% 92%;
+    --foreground: 200 30% 20%;
 
-    --card: 195 100% 98%;
-    --card-foreground: 200 20% 15%;
+    --card: 200 55% 94%;
+    --card-foreground: 200 30% 20%;
 
-    --popover: 195 100% 98%;
-    --popover-foreground: 200 20% 15%;
+    --popover: 200 55% 94%;
+    --popover-foreground: 200 30% 20%;
 
-    --primary: 195 85% 45%;
+    --primary: 200 75% 40%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 195 95% 60%;
+    --primary-glow: 200 85% 50%;
 
-    --secondary: 195 30% 94%;
-    --secondary-foreground: 200 20% 15%;
+    --secondary: 200 40% 85%;
+    --secondary-foreground: 200 30% 20%;
 
-    --muted: 195 30% 94%;
-    --muted-foreground: 200 15% 45%;
+    --muted: 200 40% 85%;
+    --muted-foreground: 200 25% 35%;
 
-    --accent: 195 85% 45%;
+    --accent: 200 75% 40%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 195 25% 88%;
-    --input: 195 25% 88%;
-    --ring: 195 85% 45%;
+    --border: 200 30% 78%;
+    --input: 200 30% 78%;
+    --ring: 200 75% 40%;
 
     --radius: 0.75rem;
     
-    --gradient-primary: linear-gradient(135deg, hsl(195 85% 45%), hsl(195 95% 60%));
-    --gradient-accent: linear-gradient(135deg, hsl(195 85% 45% / 0.08), hsl(195 95% 60% / 0.03));
-    --gradient-card: linear-gradient(135deg, hsl(195 100% 98%), hsl(195 50% 96%));
-    --shadow-elegant: 0 10px 30px -5px hsl(195 85% 45% / 0.15);
-    --shadow-hover: 0 20px 40px -10px hsl(195 95% 60% / 0.25);
-    --shadow-glow: 0 0 30px hsl(195 95% 60% / 0.1);
+    --gradient-primary: linear-gradient(135deg, hsl(200 75% 40%), hsl(200 85% 50%));
+    --gradient-accent: linear-gradient(135deg, hsl(200 75% 40% / 0.08), hsl(200 85% 50% / 0.03));
+    --gradient-card: linear-gradient(135deg, hsl(200 55% 94%), hsl(200 50% 90%));
+    --shadow-elegant: 0 10px 30px -5px hsl(200 75% 40% / 0.15);
+    --shadow-hover: 0 20px 40px -10px hsl(200 85% 50% / 0.25);
+    --shadow-glow: 0 0 30px hsl(200 85% 50% / 0.1);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-    --sidebar-background: 195 100% 98%;
-    --sidebar-foreground: 200 20% 40%;
-    --sidebar-primary: 195 85% 45%;
+    --sidebar-background: 200 55% 94%;
+    --sidebar-foreground: 200 30% 30%;
+    --sidebar-primary: 200 75% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 195 30% 92%;
-    --sidebar-accent-foreground: 200 20% 15%;
-    --sidebar-border: 195 25% 85%;
-    --sidebar-ring: 195 85% 50%;
+    --sidebar-accent: 200 40% 85%;
+    --sidebar-accent-foreground: 200 30% 20%;
+    --sidebar-border: 200 30% 75%;
+    --sidebar-ring: 200 75% 45%;
   }
 
   .dark {
