@@ -84,7 +84,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
       {/* Navigation Bar */}
       <nav className="sticky top-0 z-50 border-b border-border/40 backdrop-blur-lg bg-background/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -164,35 +164,15 @@ const Index = () => {
 
         {/* Categories Grid */}
         {categories.length > 0 ? (
-          <div className="space-y-8">
-            {categories.filter(cat => !cat.parent_id).map((category) => (
-              <div key={category.id}>
-                <CategoryCard
-                  name={category.name}
-                  description={category.description}
-                  fileCount={fileCounts[category.id] || 0}
-                  onClick={() => navigate(`/category/${category.id}`)}
-                />
-                
-                {/* Subcategories */}
-                {categories.filter(sub => sub.parent_id === category.id).length > 0 && (
-                  <div className="mr-6 mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {categories.filter(sub => sub.parent_id === category.id).map((subCategory) => (
-                      <div key={subCategory.id} className="border-r-4 border-r-primary/30 pr-4">
-                        <div className="mb-2 text-sm text-muted-foreground">
-                          {category.name} /
-                        </div>
-                        <CategoryCard
-                          name={subCategory.name}
-                          description={subCategory.description}
-                          fileCount={fileCounts[subCategory.id] || 0}
-                          onClick={() => navigate(`/category/${subCategory.id}`)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {categories.map((category) => (
+              <CategoryCard
+                key={category.id}
+                name={category.name}
+                description={category.description}
+                fileCount={fileCounts[category.id] || 0}
+                onClick={() => navigate(`/category/${category.id}`)}
+              />
             ))}
           </div>
         ) : (

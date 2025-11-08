@@ -26,12 +26,6 @@ interface Category {
   parent_id?: string | null;
 }
 
-interface Subcategory {
-  id: string;
-  name: string;
-  description?: string;
-  file_count: number;
-}
 
 interface ParentCategory {
   name: string;
@@ -43,7 +37,6 @@ const CategoryFiles = () => {
   const [category, setCategory] = useState<Category | null>(null);
   const [parentCategory, setParentCategory] = useState<ParentCategory | null>(null);
   const [files, setFiles] = useState<File[]>([]);
-  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const { isAdmin } = useIsAdmin(user);
 
@@ -70,7 +63,6 @@ const CategoryFiles = () => {
     if (categoryId) {
       fetchCategory();
       fetchFiles();
-      fetchSubcategories();
     }
   }, [categoryId]);
 
@@ -117,40 +109,6 @@ const CategoryFiles = () => {
     setFiles(data || []);
   };
 
-  const fetchSubcategories = async () => {
-    // Fetch subcategories for this category
-    const { data: subcatsData, error: subcatsError } = await supabase
-      .from("categories")
-      .select("id, name, description")
-      .eq("parent_id", categoryId);
-
-    if (subcatsError) {
-      console.error("Error fetching subcategories:", subcatsError);
-      return;
-    }
-
-    if (!subcatsData || subcatsData.length === 0) {
-      setSubcategories([]);
-      return;
-    }
-
-    // Fetch file counts for each subcategory
-    const { data: filesData } = await supabase
-      .from("files")
-      .select("category_id");
-
-    const fileCounts: Record<string, number> = {};
-    filesData?.forEach((file) => {
-      fileCounts[file.category_id] = (fileCounts[file.category_id] || 0) + 1;
-    });
-
-    const subcategoriesWithCounts = subcatsData.map((sub) => ({
-      ...sub,
-      file_count: fileCounts[sub.id] || 0,
-    }));
-
-    setSubcategories(subcategoriesWithCounts);
-  };
 
   const handleDownloadAll = async () => {
     if (files.length === 0) {
@@ -319,46 +277,14 @@ const CategoryFiles = () => {
           </div>
         </div>
 
-        {/* Subcategories */}
-        {subcategories.length > 0 && (
-          <div className="mb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {subcategories.map((sub) => (
-              <div
-                key={sub.id}
-                onClick={() => navigate(`/category/${sub.id}`)}
-                className="group cursor-pointer p-6 rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 transition-all duration-300"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                    <svg className="h-8 w-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                    </svg>
-                  </div>
-                  <div className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm font-medium">
-                    {sub.file_count} {sub.file_count === 1 ? 'ملف' : 'ملفات'}
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold group-hover:text-primary transition-colors">
-                  {sub.name}
-                </h3>
-                {sub.description && (
-                  <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
-                    {sub.description}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
         {/* Files List */}
         <div className="space-y-4">
-          {files.length === 0 && subcategories.length === 0 ? (
+          {files.length === 0 ? (
             <div className="text-center py-16 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/50 mb-4">
                 <Download className="w-8 h-8 text-muted-foreground" />
               </div>
-              <p className="text-muted-foreground">لا توجد ملفات أو فئات فرعية في هذه الفئة</p>
+              <p className="text-muted-foreground">لا توجد ملفات في هذه الفئة</p>
             </div>
           ) : (
             files.map((file) => (
