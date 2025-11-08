@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CategoryCard } from "@/components/CategoryCard";
 import { User, Session } from "@supabase/supabase-js";
 import logoMain from "@/assets/logo-main.png";
-import { Home, Shield, LogOut, LogIn } from "lucide-react";
+import { Home, Shield, LogOut, LogIn, UserCircle } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 
@@ -106,6 +106,17 @@ const Index = () => {
                 >
                   <Shield className="h-4 w-4" />
                   <span className="hidden sm:inline">لوحة التحكم</span>
+                </Button>
+              )}
+              {user && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/profile")}
+                  className="gap-2 hover:bg-accent/10"
+                >
+                  <UserCircle className="h-4 w-4" />
+                  <span className="hidden sm:inline">الملف الشخصي</span>
                 </Button>
               )}
             </div>

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Session } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Trash2, FolderOpen, Upload, Plus, Home, Shield, LogOut } from "lucide-react";
+import { Loader2, Trash2, FolderOpen, Upload, Plus, Home, Shield, LogOut, UserCircle } from "lucide-react";
 import logoMain from "@/assets/logo-main.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
@@ -235,6 +235,15 @@ const Admin = () => {
               >
                 <Shield className="h-4 w-4" />
                 <span className="hidden sm:inline">لوحة التحكم</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/profile")}
+                className="gap-2 hover:bg-accent/10"
+              >
+                <UserCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">الملف الشخصي</span>
               </Button>
             </div>
 

@@ -26,6 +26,7 @@ export const useIsAdmin = (user: User | null) => {
           console.error("Error checking admin status:", error);
           setIsAdmin(false);
         } else {
+          console.log("Admin check result:", data);
           setIsAdmin(!!data);
         }
       } catch (error) {
