@@ -45,7 +45,7 @@ const Admin = () => {
   }, []);
 
   useEffect(() => {
-    if (!adminLoading && user && !isAdmin) {
+    if (!adminLoading && !isAdmin && user) {
       toast({
         title: "غير مصرح",
         description: "ليس لديك صلاحية للوصول إلى لوحة التحكم",
@@ -53,7 +53,7 @@ const Admin = () => {
       });
       navigate("/");
     }
-  }, [user, isAdmin, adminLoading, navigate, toast]);
+  }, [isAdmin, adminLoading, user, navigate, toast]);
 
   useEffect(() => {
     if (user && isAdmin) {
@@ -199,16 +199,12 @@ const Admin = () => {
     navigate("/");
   };
 
-  if (adminLoading) {
+  if (adminLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
-  }
-
-  if (!user || !isAdmin) {
-    return null;
   }
 
   return (
