@@ -34,7 +34,7 @@ const Admin = () => {
   const [categoryName, setCategoryName] = useState("");
   const [categoryDescription, setCategoryDescription] = useState("");
   const [selectedParentId, setSelectedParentId] = useState<string>("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
@@ -251,41 +251,62 @@ const Admin = () => {
   };
 
   const handleUploadFile = async () => {
-    if (!selectedFile || !selectedCategoryId) {
-      toast.error("يرجى اختيار ملف وفئة");
+    if (!selectedFiles || selectedFiles.length === 0 || !selectedCategoryId) {
+      toast.error("يرجى اختيار ملف أو أكثر وفئة");
       return;
     }
 
     setLoading(true);
 
     try {
-      const fileExt = selectedFile.name.split(".").pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${selectedCategoryId}/${fileName}`;
+      let successCount = 0;
+      let failCount = 0;
 
-      const { error: uploadError } = await supabase.storage
-        .from("files")
-        .upload(filePath, selectedFile);
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${selectedCategoryId}/${fileName}`;
 
-      if (uploadError) throw uploadError;
+        const { error: uploadError } = await supabase.storage
+          .from("files")
+          .upload(filePath, file);
 
-      const { error: dbError } = await supabase.from("files").insert([
-        {
-          name: selectedFile.name,
-          file_path: filePath,
-          category_id: selectedCategoryId,
-          file_size: selectedFile.size,
-          mime_type: selectedFile.type,
-        },
-      ]);
+        if (uploadError) {
+          console.error(`Error uploading ${file.name}:`, uploadError);
+          failCount++;
+          continue;
+        }
 
-      if (dbError) throw dbError;
+        const { error: dbError } = await supabase.from("files").insert([
+          {
+            name: file.name,
+            file_path: filePath,
+            category_id: selectedCategoryId,
+            file_size: file.size,
+            mime_type: file.type,
+          },
+        ]);
 
-      toast.success("تم رفع الملف بنجاح");
-      setSelectedFile(null);
+        if (dbError) {
+          console.error(`Error saving ${file.name} to database:`, dbError);
+          failCount++;
+        } else {
+          successCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(`تم رفع ${successCount} ملف بنجاح`);
+      }
+      if (failCount > 0) {
+        toast.error(`فشل رفع ${failCount} ملف`);
+      }
+
+      setSelectedFiles(null);
       setSelectedCategoryId("");
     } catch (error: any) {
-      toast.error("فشل في رفع الملف");
+      toast.error("فشل في رفع الملفات");
     } finally {
       setLoading(false);
     }
@@ -476,12 +497,18 @@ const Admin = () => {
               <div>
                 <Input
                   type="file"
-                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                  multiple
+                  onChange={(e) => setSelectedFiles(e.target.files)}
                 />
+                {selectedFiles && selectedFiles.length > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    تم اختيار {selectedFiles.length} ملف
+                  </p>
+                )}
               </div>
               <Button
                 onClick={handleUploadFile}
-                disabled={loading || !selectedFile || !selectedCategoryId}
+                disabled={loading || !selectedFiles || selectedFiles.length === 0 || !selectedCategoryId}
                 className="w-full"
               >
                 {loading ? (
@@ -548,7 +575,10 @@ const Admin = () => {
                         {categories.filter(sub => sub.parent_id === category.id).map((subCategory) => (
                           <Card key={subCategory.id} className="border-r-4 border-r-primary/30">
                             <CardHeader className="py-3">
-                              <CardTitle className="text-base">{subCategory.name}</CardTitle>
+                              <CardTitle className="text-base flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">{category.name} /</span>
+                                {subCategory.name}
+                              </CardTitle>
                               {subCategory.description && (
                                 <CardDescription className="text-xs">{subCategory.description}</CardDescription>
                               )}

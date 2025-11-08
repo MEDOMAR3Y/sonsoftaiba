@@ -178,6 +178,9 @@ const Index = () => {
                   <div className="mr-6 mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {categories.filter(sub => sub.parent_id === category.id).map((subCategory) => (
                       <div key={subCategory.id} className="border-r-4 border-r-primary/30 pr-4">
+                        <div className="mb-2 text-sm text-muted-foreground">
+                          {category.name} /
+                        </div>
                         <CategoryCard
                           name={subCategory.name}
                           description={subCategory.description}
