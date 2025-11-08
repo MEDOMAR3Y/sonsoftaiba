@@ -1,23 +1,18 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Download, FileText, Trash2, Eye } from "lucide-react";
+import { Download, FileText, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { FilePreview } from "./FilePreview";
 
 interface FileItemProps {
   id: string;
   name: string;
   filePath: string;
   fileSize?: number;
-  mimeType?: string;
   isAdmin: boolean;
   onDelete?: () => void;
 }
 
-export const FileItem = ({ id, name, filePath, fileSize, mimeType, isAdmin, onDelete }: FileItemProps) => {
-  const [showPreview, setShowPreview] = useState(false);
-  
+export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: FileItemProps) => {
   const formatFileSize = (bytes?: number) => {
     if (!bytes) return '';
     const mb = bytes / (1024 * 1024);
@@ -73,18 +68,8 @@ export const FileItem = ({ id, name, filePath, fileSize, mimeType, isAdmin, onDe
     }
   };
 
-  const canPreview = mimeType?.startsWith('image/') || mimeType === 'application/pdf';
-
   return (
-    <>
-      <FilePreview
-        isOpen={showPreview}
-        onClose={() => setShowPreview(false)}
-        fileName={name}
-        filePath={filePath}
-        mimeType={mimeType}
-      />
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-all gap-3">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-all gap-3">
       <div className="flex items-center gap-3 flex-1 w-full sm:w-auto">
         <div className="p-2 rounded-lg bg-primary/10 shrink-0">
           <FileText className="w-5 h-5 text-primary" />
@@ -97,17 +82,6 @@ export const FileItem = ({ id, name, filePath, fileSize, mimeType, isAdmin, onDe
         </div>
       </div>
       <div className="flex gap-2 w-full sm:w-auto">
-        {canPreview && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setShowPreview(true)}
-            className="gap-2 flex-1 sm:flex-initial"
-          >
-            <Eye className="w-4 h-4" />
-            <span className="sm:inline">معاينة</span>
-          </Button>
-        )}
         <Button
           size="sm"
           variant="outline"
@@ -129,6 +103,5 @@ export const FileItem = ({ id, name, filePath, fileSize, mimeType, isAdmin, onDe
         )}
       </div>
     </div>
-    </>
   );
 };
