@@ -180,7 +180,7 @@ const Profile = () => {
       </nav>
 
       {/* Main Content */}
-      <div className="flex-1 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="space-y-6">
           {/* User Info Card */}
           <Card>
