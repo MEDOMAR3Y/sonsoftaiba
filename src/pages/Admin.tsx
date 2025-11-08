@@ -5,11 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Session } from "@supabase/supabase-js";
-import { useToast } from "@/hooks/use-toast";
-import { Loader2, Trash2, FolderOpen, Upload, Plus, Home, Shield, LogOut, UserCircle } from "lucide-react";
+import { toast } from "sonner";
+import { Loader2, Trash2, FolderOpen, Upload, Plus, Home, Shield, LogOut, UserCircle, AlertCircle } from "lucide-react";
 import logoMain from "@/assets/logo-main.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 interface Category {
   id: string;
@@ -19,47 +18,68 @@ interface Category {
 
 const Admin = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const { isAdmin, loading: adminLoading } = useIsAdmin(user);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryName, setCategoryName] = useState("");
   const [categoryDescription, setCategoryDescription] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
 
+  // Check authentication and admin status
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-    });
+    const initAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        navigate("/auth");
+        return;
+      }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      setUser(session.user);
+
+      // Check admin status
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error checking admin:", error);
+        setIsAdmin(false);
+      } else {
+        setIsAdmin(!!data);
+      }
+      
+      setInitializing(false);
+    };
+
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_, session) => {
+      if (!session?.user) {
+        navigate("/auth");
+        return;
+      }
+      
+      setSession(session);
+      setUser(session.user);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
-    if (!adminLoading && !isAdmin && user) {
-      toast({
-        title: "غير مصرح",
-        description: "ليس لديك صلاحية للوصول إلى لوحة التحكم",
-        variant: "destructive",
-      });
-      navigate("/");
-    }
-  }, [isAdmin, adminLoading, user, navigate, toast]);
-
-  useEffect(() => {
-    if (user && isAdmin) {
+    if (isAdmin === true) {
       fetchCategories();
     }
-  }, [user, isAdmin]);
+  }, [isAdmin]);
 
   const fetchCategories = async () => {
     const { data, error } = await supabase
@@ -68,11 +88,7 @@ const Admin = () => {
       .order("created_at", { ascending: false });
 
     if (error) {
-      toast({
-        title: "خطأ",
-        description: "فشل في تحميل الفئات",
-        variant: "destructive",
-      });
+      toast.error("فشل في تحميل الفئات");
     } else {
       setCategories(data || []);
     }
@@ -80,11 +96,7 @@ const Admin = () => {
 
   const handleCreateCategory = async () => {
     if (!categoryName.trim()) {
-      toast({
-        title: "تنبيه",
-        description: "يرجى إدخال اسم الفئة",
-        variant: "destructive",
-      });
+      toast.error("يرجى إدخال اسم الفئة");
       return;
     }
 
@@ -94,16 +106,9 @@ const Admin = () => {
       .insert([{ name: categoryName, description: categoryDescription }]);
 
     if (error) {
-      toast({
-        title: "خطأ",
-        description: "فشل في إنشاء الفئة",
-        variant: "destructive",
-      });
+      toast.error("فشل في إنشاء الفئة");
     } else {
-      toast({
-        title: "نجح",
-        description: "تم إنشاء الفئة بنجاح",
-      });
+      toast.success("تم إنشاء الفئة بنجاح");
       setCategoryName("");
       setCategoryDescription("");
       fetchCategories();
@@ -117,22 +122,32 @@ const Admin = () => {
     }
 
     setLoading(true);
+
+    // Delete all files in this category first
+    const { data: files } = await supabase
+      .from("files")
+      .select("file_path")
+      .eq("category_id", categoryId);
+
+    if (files) {
+      for (const file of files) {
+        await supabase.storage.from("files").remove([file.file_path]);
+      }
+    }
+
+    // Delete file records
+    await supabase.from("files").delete().eq("category_id", categoryId);
+
+    // Delete category
     const { error } = await supabase
       .from("categories")
       .delete()
       .eq("id", categoryId);
 
     if (error) {
-      toast({
-        title: "خطأ",
-        description: "فشل في حذف الفئة",
-        variant: "destructive",
-      });
+      toast.error("فشل في حذف الفئة");
     } else {
-      toast({
-        title: "نجح",
-        description: "تم حذف الفئة بنجاح",
-      });
+      toast.success("تم حذف الفئة بنجاح");
       fetchCategories();
     }
     setLoading(false);
@@ -140,58 +155,43 @@ const Admin = () => {
 
   const handleUploadFile = async () => {
     if (!selectedFile || !selectedCategoryId) {
-      toast({
-        title: "تنبيه",
-        description: "يرجى اختيار ملف وفئة",
-        variant: "destructive",
-      });
+      toast.error("يرجى اختيار ملف وفئة");
       return;
     }
 
     setLoading(true);
-    const fileExt = selectedFile.name.split(".").pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `${selectedCategoryId}/${fileName}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from("files")
-      .upload(filePath, selectedFile);
+    try {
+      const fileExt = selectedFile.name.split(".").pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${selectedCategoryId}/${fileName}`;
 
-    if (uploadError) {
-      toast({
-        title: "خطأ",
-        description: "فشل في رفع الملف",
-        variant: "destructive",
-      });
-      setLoading(false);
-      return;
-    }
+      const { error: uploadError } = await supabase.storage
+        .from("files")
+        .upload(filePath, selectedFile);
 
-    const { error: dbError } = await supabase
-      .from("files")
-      .insert([{
-        name: selectedFile.name,
-        file_path: filePath,
-        category_id: selectedCategoryId,
-        file_size: selectedFile.size,
-        mime_type: selectedFile.type,
-      }]);
+      if (uploadError) throw uploadError;
 
-    if (dbError) {
-      toast({
-        title: "خطأ",
-        description: "فشل في حفظ معلومات الملف",
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "نجح",
-        description: "تم رفع الملف بنجاح",
-      });
+      const { error: dbError } = await supabase.from("files").insert([
+        {
+          name: selectedFile.name,
+          file_path: filePath,
+          category_id: selectedCategoryId,
+          file_size: selectedFile.size,
+          mime_type: selectedFile.type,
+        },
+      ]);
+
+      if (dbError) throw dbError;
+
+      toast.success("تم رفع الملف بنجاح");
       setSelectedFile(null);
       setSelectedCategoryId("");
+    } catch (error: any) {
+      toast.error("فشل في رفع الملف");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleLogout = async () => {
@@ -199,10 +199,36 @@ const Admin = () => {
     navigate("/");
   };
 
-  if (adminLoading || !user) {
+  // Show loading while checking authentication
+  if (initializing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Show unauthorized message if not admin
+  if (isAdmin === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-2xl flex items-center justify-center mb-2">
+              <AlertCircle className="w-8 h-8 text-destructive" />
+            </div>
+            <CardTitle className="text-2xl">غير مصرح</CardTitle>
+            <CardDescription>ليس لديك صلاحية للوصول إلى لوحة التحكم</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button onClick={() => navigate("/")} className="w-full">
+              العودة إلى الصفحة الرئيسية
+            </Button>
+            <Button onClick={handleLogout} variant="outline" className="w-full">
+              تسجيل الخروج
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -265,133 +291,146 @@ const Admin = () => {
         <div className="flex justify-center mb-8 sm:mb-12">
           <img 
             src={logoMain} 
-            alt="SONS OF TAIBA" 
-            className="h-32 sm:h-40 w-auto object-contain drop-shadow-2xl"
+            alt="SONS OF TAIBA Admin" 
+            className="h-24 sm:h-32 w-auto object-contain drop-shadow-2xl"
           />
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 mb-8">
           {/* Create Category Card */}
-          <Card className="shadow-lg hover:shadow-xl transition-shadow">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Plus className="h-5 w-5" />
                 إنشاء فئة جديدة
               </CardTitle>
-              <CardDescription>أضف فئة جديدة لتنظيم ملفاتك</CardDescription>
+              <CardDescription>أضف فئة جديدة لتنظيم الملفات</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Input
-                placeholder="اسم الفئة"
-                value={categoryName}
-                onChange={(e) => setCategoryName(e.target.value)}
-              />
-              <Input
-                placeholder="الوصف (اختياري)"
-                value={categoryDescription}
-                onChange={(e) => setCategoryDescription(e.target.value)}
-              />
+              <div>
+                <Input
+                  placeholder="اسم الفئة"
+                  value={categoryName}
+                  onChange={(e) => setCategoryName(e.target.value)}
+                />
+              </div>
+              <div>
+                <Input
+                  placeholder="الوصف (اختياري)"
+                  value={categoryDescription}
+                  onChange={(e) => setCategoryDescription(e.target.value)}
+                />
+              </div>
               <Button
                 onClick={handleCreateCategory}
                 disabled={loading}
                 className="w-full"
               >
-                {loading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                إنشاء فئة
+                {loading ? (
+                  <>
+                    <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                    جاري الإنشاء...
+                  </>
+                ) : (
+                  "إنشاء الفئة"
+                )}
               </Button>
             </CardContent>
           </Card>
 
           {/* Upload File Card */}
-          <Card className="shadow-lg hover:shadow-xl transition-shadow">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Upload className="h-5 w-5" />
                 رفع ملف جديد
               </CardTitle>
-              <CardDescription>اختر فئة وملف للرفع</CardDescription>
+              <CardDescription>ارفع ملف إلى إحدى الفئات</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                value={selectedCategoryId}
-                onChange={(e) => setSelectedCategoryId(e.target.value)}
-              >
-                <option value="">اختر فئة</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-              <Input
-                type="file"
-                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-              />
+              <div>
+                <select
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                  value={selectedCategoryId}
+                  onChange={(e) => setSelectedCategoryId(e.target.value)}
+                >
+                  <option value="">اختر الفئة</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Input
+                  type="file"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                />
+              </div>
               <Button
                 onClick={handleUploadFile}
-                disabled={loading}
+                disabled={loading || !selectedFile || !selectedCategoryId}
                 className="w-full"
               >
-                {loading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-                رفع ملف
+                {loading ? (
+                  <>
+                    <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                    جاري الرفع...
+                  </>
+                ) : (
+                  "رفع الملف"
+                )}
               </Button>
             </CardContent>
           </Card>
         </div>
 
         {/* Categories List */}
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle>الفئات الموجودة</CardTitle>
-            <CardDescription>إدارة جميع الفئات</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {categories.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">لا توجد فئات</p>
-            ) : (
-              <div className="space-y-3">
-                {categories.map((category) => (
-                  <div
-                    key={category.id}
-                    className="flex items-center justify-between p-4 rounded-lg border border-border hover:border-primary/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <FolderOpen className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold">{category.name}</h3>
-                        {category.description && (
-                          <p className="text-sm text-muted-foreground">
-                            {category.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate(`/category/${category.id}`)}
-                      >
-                        <FolderOpen className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteCategory(category.id)}
-                        disabled={loading}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <div>
+          <h2 className="text-2xl font-bold mb-6">الفئات الحالية</h2>
+          {categories.length === 0 ? (
+            <Card>
+              <CardContent className="text-center py-12">
+                <p className="text-muted-foreground">لا توجد فئات حالياً. ابدأ بإنشاء فئة جديدة.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {categories.map((category) => (
+                <Card key={category.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="text-lg">{category.name}</CardTitle>
+                    {category.description && (
+                      <CardDescription>{category.description}</CardDescription>
+                    )}
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/category/${category.id}`)}
+                      className="w-full gap-2"
+                    >
+                      <FolderOpen className="h-4 w-4" />
+                      عرض الملفات
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteCategory(category.id)}
+                      disabled={loading}
+                      className="w-full gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      حذف الفئة
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
