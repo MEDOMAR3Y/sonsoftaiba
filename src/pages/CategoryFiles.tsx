@@ -22,12 +22,18 @@ interface Category {
   id: string;
   name: string;
   description?: string;
+  parent_id?: string | null;
+}
+
+interface ParentCategory {
+  name: string;
 }
 
 const CategoryFiles = () => {
   const { categoryId } = useParams();
   const navigate = useNavigate();
   const [category, setCategory] = useState<Category | null>(null);
+  const [parentCategory, setParentCategory] = useState<ParentCategory | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const { isAdmin } = useIsAdmin(user);
@@ -71,6 +77,19 @@ const CategoryFiles = () => {
     }
 
     setCategory(data);
+
+    // Fetch parent category if exists
+    if (data?.parent_id) {
+      const { data: parentData } = await supabase
+        .from("categories")
+        .select("name")
+        .eq("id", data.parent_id)
+        .maybeSingle();
+
+      if (parentData) {
+        setParentCategory(parentData);
+      }
+    }
   };
 
   const fetchFiles = async () => {
@@ -204,6 +223,11 @@ const CategoryFiles = () => {
         {category && (
           <div className="text-center space-y-4 mb-8">
             <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent">
+              {parentCategory && (
+                <span className="text-2xl sm:text-3xl text-muted-foreground block mb-2">
+                  {parentCategory.name} /
+                </span>
+              )}
               {category.name}
             </h1>
             {category.description && (
