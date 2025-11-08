@@ -528,13 +528,17 @@ const Admin = () => {
                         <th className="text-right p-4 font-semibold">البريد الإلكتروني</th>
                         <th className="text-right p-4 font-semibold">تاريخ الإنشاء</th>
                         <th className="text-right p-4 font-semibold">الدور</th>
-                        <th className="text-right p-4 font-semibold">الإجراءات</th>
                       </tr>
                     </thead>
                     <tbody>
                       {users.map((userItem) => (
                         <tr key={userItem.id} className="border-b border-border hover:bg-muted/50">
-                          <td className="p-4">{userItem.email}</td>
+                          <td className="p-4">
+                            {userItem.email}
+                            {userItem.id === user?.id && (
+                              <span className="mr-2 text-xs text-muted-foreground">(أنت)</span>
+                            )}
+                          </td>
                           <td className="p-4">
                             {new Date(userItem.created_at).toLocaleDateString('ar-EG', {
                               year: 'numeric',
@@ -543,17 +547,8 @@ const Admin = () => {
                             })}
                           </td>
                           <td className="p-4">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              userItem.role === 'admin' 
-                                ? 'bg-primary/10 text-primary' 
-                                : 'bg-muted text-muted-foreground'
-                            }`}>
-                              {userItem.role === 'admin' ? 'مدير' : userItem.role || 'مستخدم عادي'}
-                            </span>
-                          </td>
-                          <td className="p-4">
                             <select
-                              className="rounded-md border border-input bg-background px-3 py-1 text-sm"
+                              className="rounded-md border border-input bg-background px-3 py-1.5 text-sm min-w-[140px]"
                               value={userItem.role || ""}
                               onChange={(e) => handleUpdateUserRole(userItem.id, e.target.value || null)}
                               disabled={userItem.id === user?.id}
@@ -561,9 +556,6 @@ const Admin = () => {
                               <option value="">مستخدم عادي</option>
                               <option value="admin">مدير</option>
                             </select>
-                            {userItem.id === user?.id && (
-                              <span className="mr-2 text-xs text-muted-foreground">(أنت)</span>
-                            )}
                           </td>
                         </tr>
                       ))}
