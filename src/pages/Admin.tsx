@@ -91,36 +91,20 @@ const Admin = () => {
   }, [isAdmin]);
 
   const fetchUsers = async () => {
-    // Get all users from auth.users and their roles
-    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-    
-    if (authError) {
-      console.error("Error fetching users:", authError);
-      return;
+    try {
+      const { data, error } = await supabase.functions.invoke("list-users");
+
+      if (error) {
+        console.error("Error fetching users:", error);
+        toast.error("فشل في تحميل المستخدمين");
+        return;
+      }
+
+      setUsers(data.users || []);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast.error("فشل في تحميل المستخدمين");
     }
-
-    // Get all roles
-    const { data: roles, error: rolesError } = await supabase
-      .from("user_roles")
-      .select("user_id, role");
-
-    if (rolesError) {
-      console.error("Error fetching roles:", rolesError);
-      return;
-    }
-
-    // Combine users with their roles
-    const usersWithRoles = authUsers.users.map(user => {
-      const userRole = roles?.find(r => r.user_id === user.id);
-      return {
-        id: user.id,
-        email: user.email || "",
-        created_at: user.created_at,
-        role: userRole?.role || null
-      };
-    });
-
-    setUsers(usersWithRoles);
   };
 
   const fetchCategories = async () => {

@@ -1,0 +1,67 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Get all users from auth.users using admin API
+    const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
+
+    if (usersError) {
+      console.error("Error fetching users:", usersError);
+      throw usersError;
+    }
+
+    // Get all roles
+    const { data: roles, error: rolesError } = await supabase
+      .from("user_roles")
+      .select("user_id, role");
+
+    if (rolesError) {
+      console.error("Error fetching roles:", rolesError);
+      throw rolesError;
+    }
+
+    // Combine users with their roles
+    const usersWithRoles = users.map(user => {
+      const userRole = roles?.find(r => r.user_id === user.id);
+      return {
+        id: user.id,
+        email: user.email || "",
+        created_at: user.created_at,
+        role: userRole?.role || null
+      };
+    });
+
+    return new Response(
+      JSON.stringify({ users: usersWithRoles }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
+    );
+  } catch (error: any) {
+    console.error("Error in list-users function:", error);
+    return new Response(
+      JSON.stringify({ error: error?.message || "Unknown error" }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      }
+    );
+  }
+});

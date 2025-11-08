@@ -26,7 +26,7 @@ const Auth = () => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          navigate("/admin");
+          navigate("/");
         }
       }
     );
@@ -36,7 +36,7 @@ const Auth = () => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        navigate("/admin");
+        navigate("/");
       }
     });
 
