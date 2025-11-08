@@ -17,6 +17,7 @@ interface File {
   name: string;
   file_path: string;
   file_size?: number;
+  mime_type?: string;
 }
 
 interface Category {
@@ -294,6 +295,7 @@ const CategoryFiles = () => {
                 name={file.name}
                 filePath={file.file_path}
                 fileSize={file.file_size}
+                mimeType={file.mime_type}
                 isAdmin={isAdmin}
                 onDelete={fetchFiles}
               />
