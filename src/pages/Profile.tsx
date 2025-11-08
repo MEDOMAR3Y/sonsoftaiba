@@ -126,7 +126,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
       {/* Navigation Bar */}
       <nav className="sticky top-0 z-50 border-b border-border/40 backdrop-blur-lg bg-background/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -180,7 +180,7 @@ const Profile = () => {
       </nav>
 
       {/* Main Content */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="flex-1 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="space-y-6">
           {/* User Info Card */}
           <Card>
