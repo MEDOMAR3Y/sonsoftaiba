@@ -193,17 +193,11 @@ const Index = () => {
             <h3 className="text-xl font-semibold text-foreground mb-2">
               لا توجد فئات متاحة حالياً
             </h3>
-            <p className="text-muted-foreground mb-6">
+            <p className="text-muted-foreground">
               {user && isAdmin
                 ? "ابدأ بإضافة فئة جديدة من لوحة التحكم"
                 : "سيتم إضافة الفئات قريباً"}
             </p>
-            {user && isAdmin && (
-              <Button onClick={() => navigate("/admin")} className="gap-2">
-                <Shield className="h-4 w-4" />
-                الذهاب إلى لوحة التحكم
-              </Button>
-            )}
           </div>
         )}
       </div>

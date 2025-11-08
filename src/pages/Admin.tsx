@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
-import { Loader2, Trash2, FolderOpen, Upload, Plus, Home, Shield, LogOut, UserCircle, AlertCircle } from "lucide-react";
+import { Loader2, Trash2, FolderOpen, Upload, Plus, Home, Shield, LogOut, UserCircle, AlertCircle, Users, Edit } from "lucide-react";
 import logoMain from "@/assets/logo-main.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -16,12 +16,20 @@ interface Category {
   description?: string;
 }
 
+interface UserWithRole {
+  id: string;
+  email: string;
+  created_at: string;
+  role: string | null;
+}
+
 const Admin = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [users, setUsers] = useState<UserWithRole[]>([]);
   const [categoryName, setCategoryName] = useState("");
   const [categoryDescription, setCategoryDescription] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -78,8 +86,42 @@ const Admin = () => {
   useEffect(() => {
     if (isAdmin === true) {
       fetchCategories();
+      fetchUsers();
     }
   }, [isAdmin]);
+
+  const fetchUsers = async () => {
+    // Get all users from auth.users and their roles
+    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+    
+    if (authError) {
+      console.error("Error fetching users:", authError);
+      return;
+    }
+
+    // Get all roles
+    const { data: roles, error: rolesError } = await supabase
+      .from("user_roles")
+      .select("user_id, role");
+
+    if (rolesError) {
+      console.error("Error fetching roles:", rolesError);
+      return;
+    }
+
+    // Combine users with their roles
+    const usersWithRoles = authUsers.users.map(user => {
+      const userRole = roles?.find(r => r.user_id === user.id);
+      return {
+        id: user.id,
+        email: user.email || "",
+        created_at: user.created_at,
+        role: userRole?.role || null
+      };
+    });
+
+    setUsers(usersWithRoles);
+  };
 
   const fetchCategories = async () => {
     const { data, error } = await supabase
@@ -151,6 +193,54 @@ const Admin = () => {
       fetchCategories();
     }
     setLoading(false);
+  };
+
+  const handleUpdateUserRole = async (userId: string, newRole: string | null) => {
+    if (!userId) return;
+
+    try {
+      if (newRole === null) {
+        // Remove role
+        const { error } = await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", userId);
+
+        if (error) throw error;
+        toast.success("تم إزالة الدور بنجاح");
+      } else {
+        // Check if user already has a role
+        const { data: existingRole } = await supabase
+          .from("user_roles")
+          .select("*")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (existingRole) {
+          // Update existing role
+          const { error } = await supabase
+            .from("user_roles")
+            .update({ role: newRole as "admin" })
+            .eq("user_id", userId);
+
+          if (error) throw error;
+        } else {
+          // Insert new role
+          const { error } = await supabase
+            .from("user_roles")
+            .insert([{ user_id: userId, role: newRole as "admin" }]);
+
+          if (error) throw error;
+        }
+        
+        toast.success("تم تحديث الدور بنجاح");
+      }
+
+      fetchUsers();
+    } catch (error: any) {
+      toast.error("فشل في تحديث الدور");
+      console.error(error);
+    }
   };
 
   const handleUploadFile = async () => {
@@ -429,6 +519,75 @@ const Admin = () => {
                 </Card>
               ))}
             </div>
+          )}
+        </div>
+
+        {/* Users Management */}
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+            <Users className="h-6 w-6" />
+            إدارة المستخدمين
+          </h2>
+          {users.length === 0 ? (
+            <Card>
+              <CardContent className="text-center py-12">
+                <p className="text-muted-foreground">لا يوجد مستخدمين حالياً.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-right p-4 font-semibold">البريد الإلكتروني</th>
+                        <th className="text-right p-4 font-semibold">تاريخ الإنشاء</th>
+                        <th className="text-right p-4 font-semibold">الدور</th>
+                        <th className="text-right p-4 font-semibold">الإجراءات</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((userItem) => (
+                        <tr key={userItem.id} className="border-b border-border hover:bg-muted/50">
+                          <td className="p-4">{userItem.email}</td>
+                          <td className="p-4">
+                            {new Date(userItem.created_at).toLocaleDateString('ar-EG', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </td>
+                          <td className="p-4">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              userItem.role === 'admin' 
+                                ? 'bg-primary/10 text-primary' 
+                                : 'bg-muted text-muted-foreground'
+                            }`}>
+                              {userItem.role === 'admin' ? 'مدير' : userItem.role || 'مستخدم عادي'}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <select
+                              className="rounded-md border border-input bg-background px-3 py-1 text-sm"
+                              value={userItem.role || ""}
+                              onChange={(e) => handleUpdateUserRole(userItem.id, e.target.value || null)}
+                              disabled={userItem.id === user?.id}
+                            >
+                              <option value="">مستخدم عادي</option>
+                              <option value="admin">مدير</option>
+                            </select>
+                            {userItem.id === user?.id && (
+                              <span className="mr-2 text-xs text-muted-foreground">(أنت)</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>

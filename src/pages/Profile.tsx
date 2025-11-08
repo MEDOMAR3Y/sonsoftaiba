@@ -89,6 +89,37 @@ const Profile = () => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!confirm("هل أنت متأكد من حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه!")) {
+      return;
+    }
+
+    if (!confirm("تحذير: سيتم حذف حسابك وجميع بياناتك نهائياً. هل تريد المتابعة؟")) {
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Delete user roles first
+      const { error: rolesError } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", user?.id);
+
+      if (rolesError) throw rolesError;
+
+      // Sign out and delete account
+      await supabase.auth.signOut();
+      
+      toast.success("تم حذف الحساب بنجاح");
+      navigate("/");
+    } catch (error: any) {
+      toast.error(error.message || "حدث خطأ أثناء حذف الحساب");
+      setLoading(false);
+    }
+  };
+
   if (!user) {
     return null;
   }
@@ -260,6 +291,24 @@ const Profile = () => {
                   {loading ? "جاري التحديث..." : "تحديث كلمة المرور"}
                 </Button>
               </form>
+            </CardContent>
+          </Card>
+
+          {/* Delete Account Card */}
+          <Card className="border-destructive">
+            <CardHeader>
+              <CardTitle className="text-destructive">منطقة الخطر</CardTitle>
+              <CardDescription>حذف الحساب نهائياً - هذا الإجراء لا يمكن التراجع عنه</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteAccount}
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? "جاري الحذف..." : "حذف الحساب نهائياً"}
+              </Button>
             </CardContent>
           </Card>
         </div>
