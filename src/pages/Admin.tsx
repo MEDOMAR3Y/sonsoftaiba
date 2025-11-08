@@ -553,8 +553,10 @@ const Admin = () => {
                               onChange={(e) => handleUpdateUserRole(userItem.id, e.target.value || null)}
                               disabled={userItem.id === user?.id}
                             >
-                              <option value="">مستخدم عادي</option>
+                              <option value="">بدون دور</option>
                               <option value="admin">مدير</option>
+                              <option value="moderator">معدل</option>
+                              <option value="viewer">مشاهد</option>
                             </select>
                           </td>
                         </tr>
