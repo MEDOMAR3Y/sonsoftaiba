@@ -34,7 +34,6 @@ const Admin = () => {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [categoryName, setCategoryName] = useState("");
   const [categoryDescription, setCategoryDescription] = useState("");
-  const [selectedParentId, setSelectedParentId] = useState<string>("");
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -134,8 +133,7 @@ const Admin = () => {
       .from("categories")
       .insert([{ 
         name: categoryName, 
-        description: categoryDescription,
-        parent_id: selectedParentId || null
+        description: categoryDescription
       }]);
 
     if (error) {
@@ -144,7 +142,6 @@ const Admin = () => {
       toast.success("تم إنشاء الفئة بنجاح");
       setCategoryName("");
       setCategoryDescription("");
-      setSelectedParentId("");
       fetchCategories();
     }
     setLoading(false);
@@ -353,7 +350,7 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
       {/* Navigation Bar */}
       <nav className="sticky top-0 z-50 border-b border-border/40 backdrop-blur-lg bg-background/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -439,20 +436,6 @@ const Admin = () => {
                   value={categoryDescription}
                   onChange={(e) => setCategoryDescription(e.target.value)}
                 />
-              </div>
-              <div>
-                <select
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                  value={selectedParentId}
-                  onChange={(e) => setSelectedParentId(e.target.value)}
-                >
-                  <option value="">فئة رئيسية</option>
-                  {categories.filter(c => !c.parent_id).map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
               </div>
               <Button
                 onClick={handleCreateCategory}
