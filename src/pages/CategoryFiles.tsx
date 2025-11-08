@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { FileItem } from "@/components/FileItem";
+import { Footer } from "@/components/Footer";
 import { ArrowRight, Download, Share2, Home, Shield, LogOut, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import JSZip from "jszip";
@@ -224,9 +225,10 @@ const CategoryFiles = () => {
           <div className="text-center space-y-4 mb-8">
             <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent">
               {parentCategory && (
-                <span className="text-2xl sm:text-3xl text-muted-foreground block mb-2">
-                  {parentCategory.name} /
-                </span>
+                <>
+                  <span className="text-muted-foreground">{parentCategory.name}</span>
+                  <span className="mx-2">/</span>
+                </>
               )}
               {category.name}
             </h1>
@@ -297,6 +299,7 @@ const CategoryFiles = () => {
           )}
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

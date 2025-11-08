@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Footer } from "@/components/Footer";
 import { User, Session } from "@supabase/supabase-js";
 import { Home, Shield, LogOut, Eye, EyeOff, UserCircle } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -313,6 +314,7 @@ const Profile = () => {
           </Card>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

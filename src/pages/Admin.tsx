@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Footer } from "@/components/Footer";
 import { User, Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { Loader2, Trash2, FolderOpen, Upload, Plus, Home, Shield, LogOut, UserCircle, AlertCircle, Users, Edit } from "lucide-react";
@@ -688,6 +689,7 @@ const Admin = () => {
           )}
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { CategoryCard } from "@/components/CategoryCard";
+import { Footer } from "@/components/Footer";
 import { User, Session } from "@supabase/supabase-js";
 import logoMain from "@/assets/logo-main.png";
 import { Home, Shield, LogOut, LogIn, UserCircle } from "lucide-react";
@@ -222,6 +223,7 @@ const Index = () => {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 };
