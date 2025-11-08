@@ -14,6 +14,7 @@ interface Category {
   id: string;
   name: string;
   description?: string;
+  parent_id?: string | null;
 }
 
 interface UserWithRole {
@@ -32,6 +33,7 @@ const Admin = () => {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [categoryName, setCategoryName] = useState("");
   const [categoryDescription, setCategoryDescription] = useState("");
+  const [selectedParentId, setSelectedParentId] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -129,7 +131,11 @@ const Admin = () => {
     setLoading(true);
     const { error } = await supabase
       .from("categories")
-      .insert([{ name: categoryName, description: categoryDescription }]);
+      .insert([{ 
+        name: categoryName, 
+        description: categoryDescription,
+        parent_id: selectedParentId || null
+      }]);
 
     if (error) {
       toast.error("فشل في إنشاء الفئة");
@@ -137,6 +143,7 @@ const Admin = () => {
       toast.success("تم إنشاء الفئة بنجاح");
       setCategoryName("");
       setCategoryDescription("");
+      setSelectedParentId("");
       fetchCategories();
     }
     setLoading(false);
@@ -411,6 +418,20 @@ const Admin = () => {
                   onChange={(e) => setCategoryDescription(e.target.value)}
                 />
               </div>
+              <div>
+                <select
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                  value={selectedParentId}
+                  onChange={(e) => setSelectedParentId(e.target.value)}
+                >
+                  <option value="">فئة رئيسية</option>
+                  {categories.filter(c => !c.parent_id).map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <Button
                 onClick={handleCreateCategory}
                 disabled={loading}
@@ -486,38 +507,80 @@ const Admin = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {categories.map((category) => (
-                <Card key={category.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="text-lg">{category.name}</CardTitle>
-                    {category.description && (
-                      <CardDescription>{category.description}</CardDescription>
+            <div className="space-y-6">
+              {/* Main Categories */}
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {categories.filter(cat => !cat.parent_id).map((category) => (
+                  <div key={category.id}>
+                    <Card className="hover:shadow-lg transition-shadow">
+                      <CardHeader>
+                        <CardTitle className="text-lg">{category.name}</CardTitle>
+                        {category.description && (
+                          <CardDescription>{category.description}</CardDescription>
+                        )}
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/category/${category.id}`)}
+                          className="w-full gap-2"
+                        >
+                          <FolderOpen className="h-4 w-4" />
+                          عرض الملفات
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteCategory(category.id)}
+                          disabled={loading}
+                          className="w-full gap-2"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          حذف الفئة
+                        </Button>
+                      </CardContent>
+                    </Card>
+                    
+                    {/* Subcategories */}
+                    {categories.filter(sub => sub.parent_id === category.id).length > 0 && (
+                      <div className="mr-6 mt-2 space-y-2">
+                        {categories.filter(sub => sub.parent_id === category.id).map((subCategory) => (
+                          <Card key={subCategory.id} className="border-r-4 border-r-primary/30">
+                            <CardHeader className="py-3">
+                              <CardTitle className="text-base">{subCategory.name}</CardTitle>
+                              {subCategory.description && (
+                                <CardDescription className="text-xs">{subCategory.description}</CardDescription>
+                              )}
+                            </CardHeader>
+                            <CardContent className="py-2 space-y-1">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate(`/category/${subCategory.id}`)}
+                                className="w-full gap-2 h-8 text-xs"
+                              >
+                                <FolderOpen className="h-3 w-3" />
+                                عرض الملفات
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeleteCategory(subCategory.id)}
+                                disabled={loading}
+                                className="w-full gap-2 h-8 text-xs"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                                حذف
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
                     )}
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate(`/category/${category.id}`)}
-                      className="w-full gap-2"
-                    >
-                      <FolderOpen className="h-4 w-4" />
-                      عرض الملفات
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteCategory(category.id)}
-                      disabled={loading}
-                      className="w-full gap-2"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      حذف الفئة
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

@@ -13,6 +13,7 @@ interface Category {
   id: string;
   name: string;
   description?: string;
+  parent_id?: string | null;
 }
 
 interface FileCount {
@@ -162,15 +163,32 @@ const Index = () => {
 
         {/* Categories Grid */}
         {categories.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => (
-              <CategoryCard
-                key={category.id}
-                name={category.name}
-                description={category.description}
-                fileCount={fileCounts[category.id] || 0}
-                onClick={() => navigate(`/category/${category.id}`)}
-              />
+          <div className="space-y-8">
+            {categories.filter(cat => !cat.parent_id).map((category) => (
+              <div key={category.id}>
+                <CategoryCard
+                  name={category.name}
+                  description={category.description}
+                  fileCount={fileCounts[category.id] || 0}
+                  onClick={() => navigate(`/category/${category.id}`)}
+                />
+                
+                {/* Subcategories */}
+                {categories.filter(sub => sub.parent_id === category.id).length > 0 && (
+                  <div className="mr-6 mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {categories.filter(sub => sub.parent_id === category.id).map((subCategory) => (
+                      <div key={subCategory.id} className="border-r-4 border-r-primary/30 pr-4">
+                        <CategoryCard
+                          name={subCategory.name}
+                          description={subCategory.description}
+                          fileCount={fileCounts[subCategory.id] || 0}
+                          onClick={() => navigate(`/category/${subCategory.id}`)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         ) : (
