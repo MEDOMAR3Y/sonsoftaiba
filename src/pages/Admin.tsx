@@ -179,51 +179,67 @@ const Admin = () => {
     setLoading(false);
   };
 
-  const handleUpdateUserRole = async (userId: string, newRole: string | null) => {
+  const handleUpdateUserRole = async (userId: string, newRole: "admin" | "moderator" | "viewer") => {
     if (!userId) return;
 
     try {
-      if (newRole === null) {
-        // Remove role
+      // Check if user already has a role
+      const { data: existingRole } = await supabase
+        .from("user_roles")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (existingRole) {
+        // Update existing role
         const { error } = await supabase
           .from("user_roles")
-          .delete()
+          .update({ role: newRole })
           .eq("user_id", userId);
 
         if (error) throw error;
-        toast.success("تم إزالة الدور بنجاح");
       } else {
-        // Check if user already has a role
-        const { data: existingRole } = await supabase
+        // Insert new role
+        const { error } = await supabase
           .from("user_roles")
-          .select("*")
-          .eq("user_id", userId)
-          .maybeSingle();
+          .insert([{ user_id: userId, role: newRole }]);
 
-        if (existingRole) {
-          // Update existing role
-          const { error } = await supabase
-            .from("user_roles")
-            .update({ role: newRole as "admin" })
-            .eq("user_id", userId);
-
-          if (error) throw error;
-        } else {
-          // Insert new role
-          const { error } = await supabase
-            .from("user_roles")
-            .insert([{ user_id: userId, role: newRole as "admin" }]);
-
-          if (error) throw error;
-        }
-        
-        toast.success("تم تحديث الدور بنجاح");
+        if (error) throw error;
       }
-
+      
+      toast.success("تم تحديث الدور بنجاح");
       fetchUsers();
     } catch (error: any) {
       toast.error("فشل في تحديث الدور");
       console.error(error);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, userEmail: string) => {
+    if (userId === user?.id) {
+      toast.error("لا يمكنك حذف حسابك الخاص");
+      return;
+    }
+
+    if (!confirm(`هل أنت متأكد من حذف المستخدم ${userEmail}؟ هذا الإجراء لا يمكن التراجع عنه.`)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke("delete-user", {
+        body: { userId },
+      });
+
+      if (error) throw error;
+
+      toast.success("تم حذف المستخدم بنجاح");
+      fetchUsers();
+    } catch (error: any) {
+      toast.error("فشل في حذف المستخدم");
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -528,6 +544,7 @@ const Admin = () => {
                         <th className="text-right p-4 font-semibold">البريد الإلكتروني</th>
                         <th className="text-right p-4 font-semibold">تاريخ الإنشاء</th>
                         <th className="text-right p-4 font-semibold">الدور</th>
+                        <th className="text-right p-4 font-semibold">الإجراءات</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -549,15 +566,24 @@ const Admin = () => {
                           <td className="p-4">
                             <select
                               className="rounded-md border border-input bg-background px-3 py-1.5 text-sm min-w-[140px]"
-                              value={userItem.role || ""}
-                              onChange={(e) => handleUpdateUserRole(userItem.id, e.target.value || null)}
+                              value={userItem.role || "viewer"}
+                              onChange={(e) => handleUpdateUserRole(userItem.id, e.target.value as "admin" | "moderator" | "viewer")}
                               disabled={userItem.id === user?.id}
                             >
-                              <option value="">بدون دور</option>
                               <option value="admin">مدير</option>
                               <option value="moderator">معدل</option>
                               <option value="viewer">مشاهد</option>
                             </select>
+                          </td>
+                          <td className="p-4">
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteUser(userItem.id, userItem.email)}
+                              disabled={userItem.id === user?.id || loading}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </td>
                         </tr>
                       ))}
