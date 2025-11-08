@@ -69,9 +69,9 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: Fi
   };
 
   return (
-    <div className="flex items-center justify-between p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-all">
-      <div className="flex items-center gap-3 flex-1">
-        <div className="p-2 rounded-lg bg-primary/10">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-all gap-3">
+      <div className="flex items-center gap-3 flex-1 w-full sm:w-auto">
+        <div className="p-2 rounded-lg bg-primary/10 shrink-0">
           <FileText className="w-5 h-5 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
@@ -81,21 +81,22 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: Fi
           )}
         </div>
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 w-full sm:w-auto">
         <Button
           size="sm"
           variant="outline"
           onClick={handleDownload}
-          className="gap-2"
+          className="gap-2 flex-1 sm:flex-initial"
         >
           <Download className="w-4 h-4" />
-          تحميل
+          <span className="sm:inline">تحميل</span>
         </Button>
         {isAdmin && (
           <Button
             size="sm"
             variant="destructive"
             onClick={handleDelete}
+            className="shrink-0"
           >
             <Trash2 className="w-4 h-4" />
           </Button>
