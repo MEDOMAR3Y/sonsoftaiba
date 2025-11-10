@@ -1,4 +1,6 @@
 
+-- Migration: 20251107111155
+
 -- Migration: 20251103170602
 -- Create categories table
 CREATE TABLE public.categories (
@@ -211,3 +213,122 @@ CREATE POLICY "Only admins can delete files"
 ON public.files
 FOR DELETE
 USING (public.has_role(auth.uid(), 'admin'));
+
+
+-- Migration: 20251107112136
+-- إنشاء المستخدم admin@localhost في auth.users مباشرة
+-- ملاحظة: هذا مجرد placeholder لأن Supabase يجب أن ينشئ المستخدم عبر API
+
+-- إضافة دور admin للمستخدم الجديد تلقائياً بعد التسجيل
+CREATE OR REPLACE FUNCTION public.handle_new_admin_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  -- إذا كان البريد الإلكتروني هو medo.mar3y.1@gmail.com، أضف دور admin تلقائياً
+  IF NEW.email = 'medo.mar3y.1@gmail.com' THEN
+    INSERT INTO public.user_roles (user_id, role)
+    VALUES (NEW.id, 'admin'::app_role)
+    ON CONFLICT (user_id, role) DO NOTHING;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+-- إنشاء trigger لإضافة دور admin تلقائياً
+DROP TRIGGER IF EXISTS on_auth_user_created_admin ON auth.users;
+CREATE TRIGGER on_auth_user_created_admin
+  AFTER INSERT ON auth.users
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_new_admin_user();
+
+-- Migration: 20251108000811
+-- تحديث الـ trigger ليستخدم البريد الإلكتروني الجديد
+DROP FUNCTION IF EXISTS public.handle_new_admin_user() CASCADE;
+
+CREATE OR REPLACE FUNCTION public.handle_new_admin_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+BEGIN
+  -- إذا كان البريد الإلكتروني هو mohamednasrahmed@outlook.com، أضف دور admin تلقائياً
+  IF NEW.email = 'mohamednasrahmed@outlook.com' THEN
+    INSERT INTO public.user_roles (user_id, role)
+    VALUES (NEW.id, 'admin'::app_role)
+    ON CONFLICT (user_id, role) DO NOTHING;
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+
+-- إعادة إنشاء الـ trigger
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_admin_user();
+
+-- Migration: 20251108063129
+-- Step 1: Add new roles to enum (must be in separate transaction)
+ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'moderator';
+ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'viewer';
+
+-- Migration: 20251108063152
+-- Step 2: Update RLS policies for categories table
+-- Drop old policies
+DROP POLICY IF EXISTS "Authenticated users can insert categories" ON public.categories;
+DROP POLICY IF EXISTS "Authenticated users can update categories" ON public.categories;
+
+-- Create new policies for categories
+CREATE POLICY "Moderators and admins can create categories"
+ON public.categories
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  has_role(auth.uid(), 'admin'::app_role) OR 
+  has_role(auth.uid(), 'moderator'::app_role)
+);
+
+CREATE POLICY "Moderators and admins can update categories"
+ON public.categories
+FOR UPDATE
+TO authenticated
+USING (
+  has_role(auth.uid(), 'admin'::app_role) OR 
+  has_role(auth.uid(), 'moderator'::app_role)
+);
+
+-- Update RLS policies for files table
+-- Drop old policies
+DROP POLICY IF EXISTS "Authenticated users can insert files" ON public.files;
+DROP POLICY IF EXISTS "Authenticated users can update files" ON public.files;
+
+-- Create new policies for files
+CREATE POLICY "Moderators and admins can upload files"
+ON public.files
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  has_role(auth.uid(), 'admin'::app_role) OR 
+  has_role(auth.uid(), 'moderator'::app_role)
+);
+
+CREATE POLICY "Moderators and admins can update files"
+ON public.files
+FOR UPDATE
+TO authenticated
+USING (
+  has_role(auth.uid(), 'admin'::app_role) OR 
+  has_role(auth.uid(), 'moderator'::app_role)
+);
+
+-- Migration: 20251108063757
+-- Add parent_id column to categories table for subcategories
+ALTER TABLE public.categories 
+ADD COLUMN parent_id UUID REFERENCES public.categories(id) ON DELETE CASCADE;
+
+-- Create index for better performance when querying subcategories
+CREATE INDEX idx_categories_parent_id ON public.categories(parent_id);
