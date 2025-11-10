@@ -150,23 +150,13 @@ const DepartmentView = () => {
               className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 bg-card/80 backdrop-blur-sm"
             >
               <CardHeader className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
-                    <GraduationCap className="h-8 w-8 text-primary" />
-                  </div>
-                  {department.has_preparatory && (
-                    <div className="px-3 py-1 rounded-full bg-accent text-accent-foreground text-xs font-medium">
-                      إعدادي
-                    </div>
-                  )}
+                <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300 w-fit mx-auto">
+                  <GraduationCap className="h-8 w-8 text-primary" />
                 </div>
                 <div>
                   <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300">
                     {department.name}
                   </CardTitle>
-                  <CardDescription className="mt-2">
-                    {department.has_preparatory ? `إعدادي + ${department.years_count} سنوات` : `${department.years_count} سنوات دراسية`}
-                  </CardDescription>
                 </div>
               </CardHeader>
             </Card>
