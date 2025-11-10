@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Download, FileText, Trash2 } from "lucide-react";
+import { Download, FileText, Trash2, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -17,6 +17,24 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: Fi
     if (!bytes) return '';
     const mb = bytes / (1024 * 1024);
     return mb < 1 ? `${(bytes / 1024).toFixed(1)} KB` : `${mb.toFixed(1)} MB`;
+  };
+
+  const handleView = async () => {
+    try {
+      const { data, error } = await supabase.storage
+        .from("files")
+        .createSignedUrl(filePath, 3600); // URL valid for 1 hour
+
+      if (error) throw error;
+
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, '_blank');
+        toast.success("تم فتح الملف في نافذة جديدة");
+      }
+    } catch (error: any) {
+      console.error("Error viewing file:", error);
+      toast.error("فشل فتح الملف");
+    }
   };
 
   const handleDownload = async () => {
@@ -82,6 +100,15 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: Fi
         </div>
       </div>
       <div className="flex gap-2 w-full sm:w-auto">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleView}
+          className="gap-2 flex-1 sm:flex-initial"
+        >
+          <Eye className="w-4 h-4" />
+          <span className="sm:inline">معاينة</span>
+        </Button>
         <Button
           size="sm"
           variant="outline"

@@ -1,31 +1,38 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { CategoryCard } from "@/components/CategoryCard";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Footer } from "@/components/Footer";
 import { User, Session } from "@supabase/supabase-js";
-import logoMain from "@/assets/logo-main.png";
-import { Home, Shield, LogOut, LogIn, UserCircle } from "lucide-react";
+import { Home, Shield, LogOut, LogIn, UserCircle, ArrowRight, Calendar, Folder } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import logoMain from "@/assets/logo-main.png";
+
+interface Semester {
+  id: string;
+  name: string;
+  semester_number: number;
+}
 
 interface Category {
   id: string;
   name: string;
   description?: string;
-  semester_id?: string | null;
 }
 
-interface FileCount {
-  category_id: string;
-  count: number;
+interface AcademicLevel {
+  id: string;
+  name: string;
 }
 
-const Index = () => {
+const SemesterView = () => {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [fileCounts, setFileCounts] = useState<Record<string, number>>({});
+  const { levelId } = useParams();
+  const [level, setLevel] = useState<AcademicLevel | null>(null);
+  const [semesters, setSemesters] = useState<Semester[]>([]);
+  const [categories, setCategories] = useState<Record<string, Category[]>>({});
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const { isAdmin } = useIsAdmin(user);
@@ -45,36 +52,49 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    fetchCategories();
-    fetchFileCounts();
-  }, []);
+    if (levelId) {
+      fetchLevel();
+      fetchSemesters();
+    }
+  }, [levelId]);
 
-  const fetchCategories = async () => {
+  const fetchLevel = async () => {
     const { data, error } = await supabase
-      .from("categories")
+      .from("academic_levels")
       .select("*")
-      .order("created_at", { ascending: false });
+      .eq("id", levelId)
+      .maybeSingle();
 
     if (error) {
-      console.error("Error fetching categories:", error);
+      console.error("Error fetching level:", error);
     } else {
-      setCategories(data || []);
+      setLevel(data);
     }
   };
 
-  const fetchFileCounts = async () => {
+  const fetchSemesters = async () => {
     const { data, error } = await supabase
-      .from("files")
-      .select("category_id");
+      .from("semesters")
+      .select("*")
+      .eq("academic_level_id", levelId)
+      .order("semester_number");
 
     if (error) {
-      console.error("Error fetching file counts:", error);
+      console.error("Error fetching semesters:", error);
     } else {
-      const counts: Record<string, number> = {};
-      data?.forEach((file) => {
-        counts[file.category_id] = (counts[file.category_id] || 0) + 1;
+      setSemesters(data || []);
+      
+      // Fetch categories for each semester
+      data?.forEach(async (semester) => {
+        const { data: cats, error: catsError } = await supabase
+          .from("categories")
+          .select("*")
+          .eq("semester_id", semester.id);
+        
+        if (!catsError && cats) {
+          setCategories(prev => ({ ...prev, [semester.id]: cats }));
+        }
       });
-      setFileCounts(counts);
     }
   };
 
@@ -152,7 +172,7 @@ const Index = () => {
       </nav>
 
       {/* Main Content */}
-      <div className="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Logo */}
         <div className="flex justify-center mb-8 sm:mb-12">
           <img 
@@ -162,50 +182,63 @@ const Index = () => {
           />
         </div>
 
-        {/* Categories Grid */}
-        {categories.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => (
-              <CategoryCard
-                key={category.id}
-                name={category.name}
-                description={category.description}
-                fileCount={fileCounts[category.id] || 0}
-                onClick={() => navigate(`/category/${category.id}`)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-16">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted/50 mb-6">
-              <svg
-                className="w-10 h-10 text-muted-foreground"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">
-              لا توجد فئات متاحة حالياً
-            </h3>
-            <p className="text-muted-foreground">
-              {user && isAdmin
-                ? "ابدأ بإضافة فئة جديدة من لوحة التحكم"
-                : "سيتم إضافة الفئات قريباً"}
-            </p>
-          </div>
+        <div className="mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="gap-2"
+          >
+            <ArrowRight className="h-4 w-4" />
+            العودة
+          </Button>
+        </div>
+
+        {level && (
+          <h1 className="text-3xl font-bold text-center mb-8">{level.name}</h1>
         )}
+
+        {/* Semesters */}
+        <div className="space-y-8">
+          {semesters.map((semester) => (
+            <div key={semester.id}>
+              <div className="flex items-center gap-3 mb-4">
+                <Calendar className="h-6 w-6 text-primary" />
+                <h2 className="text-2xl font-bold">{semester.name}</h2>
+              </div>
+              
+              {categories[semester.id] && categories[semester.id].length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {categories[semester.id].map((category) => (
+                    <Card
+                      key={category.id}
+                      onClick={() => navigate(`/category/${category.id}`)}
+                      className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 bg-card/80 backdrop-blur-sm"
+                    >
+                      <CardHeader className="space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
+                            <Folder className="h-8 w-8 text-primary" />
+                          </div>
+                        </div>
+                        <div>
+                          <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300">
+                            {category.name}
+                          </CardTitle>
+                        </div>
+                      </CardHeader>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-center py-8">لا توجد مواد في هذا الترم</p>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
       <Footer />
     </div>
   );
 };
 
-export default Index;
+export default SemesterView;

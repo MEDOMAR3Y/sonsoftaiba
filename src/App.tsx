@@ -9,6 +9,9 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
 import CategoryFiles from "./pages/CategoryFiles";
+import DepartmentView from "./pages/DepartmentView";
+import LevelView from "./pages/LevelView";
+import SemesterView from "./pages/SemesterView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,10 +25,12 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<DepartmentView />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/department/:departmentId/levels" element={<LevelView />} />
+            <Route path="/level/:levelId/semesters" element={<SemesterView />} />
             <Route path="/category/:categoryId" element={<CategoryFiles />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

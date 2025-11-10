@@ -1,31 +1,33 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { CategoryCard } from "@/components/CategoryCard";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Footer } from "@/components/Footer";
 import { User, Session } from "@supabase/supabase-js";
-import logoMain from "@/assets/logo-main.png";
-import { Home, Shield, LogOut, LogIn, UserCircle } from "lucide-react";
+import { Home, Shield, LogOut, LogIn, UserCircle, ArrowRight, BookOpen } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import logoMain from "@/assets/logo-main.png";
 
-interface Category {
+interface Department {
   id: string;
   name: string;
-  description?: string;
-  semester_id?: string | null;
+  years_count: number;
+  has_preparatory: boolean;
 }
 
-interface FileCount {
-  category_id: string;
-  count: number;
+interface AcademicLevel {
+  id: string;
+  name: string;
+  level_number: number;
 }
 
-const Index = () => {
+const LevelView = () => {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [fileCounts, setFileCounts] = useState<Record<string, number>>({});
+  const { departmentId } = useParams();
+  const [department, setDepartment] = useState<Department | null>(null);
+  const [levels, setLevels] = useState<AcademicLevel[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const { isAdmin } = useIsAdmin(user);
@@ -45,36 +47,37 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    fetchCategories();
-    fetchFileCounts();
-  }, []);
+    if (departmentId) {
+      fetchDepartment();
+      fetchLevels();
+    }
+  }, [departmentId]);
 
-  const fetchCategories = async () => {
+  const fetchDepartment = async () => {
     const { data, error } = await supabase
-      .from("categories")
+      .from("departments")
       .select("*")
-      .order("created_at", { ascending: false });
+      .eq("id", departmentId)
+      .maybeSingle();
 
     if (error) {
-      console.error("Error fetching categories:", error);
+      console.error("Error fetching department:", error);
     } else {
-      setCategories(data || []);
+      setDepartment(data);
     }
   };
 
-  const fetchFileCounts = async () => {
+  const fetchLevels = async () => {
     const { data, error } = await supabase
-      .from("files")
-      .select("category_id");
+      .from("academic_levels")
+      .select("*")
+      .eq("department_id", departmentId)
+      .order("level_number");
 
     if (error) {
-      console.error("Error fetching file counts:", error);
+      console.error("Error fetching levels:", error);
     } else {
-      const counts: Record<string, number> = {};
-      data?.forEach((file) => {
-        counts[file.category_id] = (counts[file.category_id] || 0) + 1;
-      });
-      setFileCounts(counts);
+      setLevels(data || []);
     }
   };
 
@@ -152,7 +155,7 @@ const Index = () => {
       </nav>
 
       {/* Main Content */}
-      <div className="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Logo */}
         <div className="flex justify-center mb-8 sm:mb-12">
           <img 
@@ -162,50 +165,48 @@ const Index = () => {
           />
         </div>
 
-        {/* Categories Grid */}
-        {categories.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => (
-              <CategoryCard
-                key={category.id}
-                name={category.name}
-                description={category.description}
-                fileCount={fileCounts[category.id] || 0}
-                onClick={() => navigate(`/category/${category.id}`)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-16">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted/50 mb-6">
-              <svg
-                className="w-10 h-10 text-muted-foreground"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">
-              لا توجد فئات متاحة حالياً
-            </h3>
-            <p className="text-muted-foreground">
-              {user && isAdmin
-                ? "ابدأ بإضافة فئة جديدة من لوحة التحكم"
-                : "سيتم إضافة الفئات قريباً"}
-            </p>
-          </div>
+        <div className="mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/")}
+            className="gap-2"
+          >
+            <ArrowRight className="h-4 w-4" />
+            العودة للأقسام
+          </Button>
+        </div>
+
+        {department && (
+          <h1 className="text-3xl font-bold text-center mb-8">{department.name} - اختر المستوى الدراسي</h1>
         )}
+
+        {/* Levels Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {levels.map((level) => (
+            <Card
+              key={level.id}
+              onClick={() => navigate(`/level/${level.id}/semesters`)}
+              className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 bg-card/80 backdrop-blur-sm"
+            >
+              <CardHeader className="space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
+                    <BookOpen className="h-8 w-8 text-primary" />
+                  </div>
+                </div>
+                <div>
+                  <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300">
+                    {level.name}
+                  </CardTitle>
+                </div>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
       </div>
       <Footer />
     </div>
   );
 };
 
-export default Index;
+export default LevelView;
