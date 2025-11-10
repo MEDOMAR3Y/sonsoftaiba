@@ -1,0 +1,325 @@
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Footer } from "@/components/Footer";
+import { User, Session } from "@supabase/supabase-js";
+import { Home, Shield, LogOut, LogIn, UserCircle, ArrowRight, Folder, Plus } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { toast } from "sonner";
+import logoMain from "@/assets/logo-main.png";
+
+interface Category {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+interface Semester {
+  id: string;
+  name: string;
+  semester_number: number;
+}
+
+const SemesterCategories = () => {
+  const navigate = useNavigate();
+  const { semesterId } = useParams();
+  const [semester, setSemester] = useState<Semester | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const { isAdmin } = useIsAdmin(user);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryDescription, setNewCategoryDescription] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (semesterId) {
+      fetchSemester();
+      fetchCategories();
+    }
+  }, [semesterId]);
+
+  const fetchSemester = async () => {
+    const { data, error } = await supabase
+      .from("semesters")
+      .select("*")
+      .eq("id", semesterId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching semester:", error);
+      toast.error("حدث خطأ في جلب بيانات الترم");
+    } else {
+      setSemester(data);
+    }
+  };
+
+  const fetchCategories = async () => {
+    const { data, error } = await supabase
+      .from("categories")
+      .select("*")
+      .eq("semester_id", semesterId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching categories:", error);
+      toast.error("حدث خطأ في جلب الفئات");
+    } else {
+      setCategories(data || []);
+    }
+  };
+
+  const handleCreateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!newCategoryName.trim()) {
+      toast.error("الرجاء إدخال اسم الفئة");
+      return;
+    }
+
+    setIsCreating(true);
+
+    try {
+      const { error } = await supabase
+        .from("categories")
+        .insert({
+          name: newCategoryName,
+          description: newCategoryDescription || null,
+          semester_id: semesterId
+        });
+
+      if (error) throw error;
+
+      toast.success("تم إنشاء الفئة بنجاح");
+      setNewCategoryName("");
+      setNewCategoryDescription("");
+      setIsDialogOpen(false);
+      fetchCategories();
+    } catch (error: any) {
+      console.error("Error creating category:", error);
+      toast.error("حدث خطأ في إنشاء الفئة");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
+      {/* Navigation Bar */}
+      <nav className="sticky top-0 z-50 border-b border-border/40 backdrop-blur-lg bg-background/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/")}
+                className="gap-2 hover:bg-accent/10"
+              >
+                <Home className="h-4 w-4" />
+                <span className="hidden sm:inline">الرئيسية</span>
+              </Button>
+              {isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/admin")}
+                  className="gap-2 hover:bg-accent/10"
+                >
+                  <Shield className="h-4 w-4" />
+                  <span className="hidden sm:inline">لوحة التحكم</span>
+                </Button>
+              )}
+              {user && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/profile")}
+                  className="gap-2 hover:bg-accent/10"
+                >
+                  <UserCircle className="h-4 w-4" />
+                  <span className="hidden sm:inline">الملف الشخصي</span>
+                </Button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              {user ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="gap-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">تسجيل الخروج</span>
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/auth")}
+                  className="gap-2"
+                >
+                  <LogIn className="h-4 w-4" />
+                  <span className="hidden sm:inline">تسجيل الدخول</span>
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {/* Logo */}
+        <div className="flex justify-center mb-8 sm:mb-12">
+          <img 
+            src={logoMain} 
+            alt="SONS OF TAIBA" 
+            className="h-32 sm:h-40 w-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-300"
+          />
+        </div>
+
+        <div className="mb-6 flex items-center justify-between">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="gap-2"
+          >
+            <ArrowRight className="h-4 w-4" />
+            العودة
+          </Button>
+
+          {isAdmin && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  إضافة فئة جديدة
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>إضافة فئة جديدة</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleCreateCategory} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">اسم الفئة (المادة)</Label>
+                    <Input
+                      id="name"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      placeholder="مثال: برمجة 1، رياضيات 2، إلخ"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">الوصف (اختياري)</Label>
+                    <Textarea
+                      id="description"
+                      value={newCategoryDescription}
+                      onChange={(e) => setNewCategoryDescription(e.target.value)}
+                      placeholder="وصف المادة"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsDialogOpen(false)}
+                    >
+                      إلغاء
+                    </Button>
+                    <Button type="submit" disabled={isCreating}>
+                      {isCreating ? "جاري الإنشاء..." : "إنشاء"}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
+
+        {semester && (
+          <h1 className="text-3xl font-bold text-center mb-8">{semester.name}</h1>
+        )}
+
+        {/* Categories Grid */}
+        {categories.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {categories.map((category) => (
+              <Card
+                key={category.id}
+                onClick={() => navigate(`/category/${category.id}`)}
+                className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 bg-card/80 backdrop-blur-sm"
+              >
+                <CardHeader className="space-y-3">
+                  <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300 w-fit mx-auto">
+                    <Folder className="h-8 w-8 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300 text-center">
+                      {category.name}
+                    </CardTitle>
+                    {category.description && (
+                      <p className="text-sm text-muted-foreground mt-2 text-center">
+                        {category.description}
+                      </p>
+                    )}
+                  </div>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted/50 mb-6">
+              <Folder className="w-10 h-10 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">
+              لا توجد فئات في هذا الترم
+            </h3>
+            <p className="text-muted-foreground">
+              {isAdmin
+                ? "ابدأ بإضافة فئة جديدة"
+                : "سيتم إضافة الفئات قريباً"}
+            </p>
+          </div>
+        )}
+      </div>
+      <Footer />
+    </div>
+  );
+};
+
+export default SemesterCategories;

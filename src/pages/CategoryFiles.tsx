@@ -1,10 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { FileItem } from "@/components/FileItem";
 import { Footer } from "@/components/Footer";
-import { ArrowRight, Download, Share2, Home, Shield, LogOut, LogIn } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ArrowRight, Download, Share2, Home, Shield, LogOut, LogIn, Upload } from "lucide-react";
 import { toast } from "sonner";
 import JSZip from "jszip";
 import { User } from "@supabase/supabase-js";
@@ -37,6 +40,10 @@ const CategoryFiles = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const { isAdmin } = useIsAdmin(user);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -92,6 +99,60 @@ const CategoryFiles = () => {
     }
 
     setFiles(data || []);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file as any);
+    }
+  };
+
+  const handleUploadFile = async () => {
+    if (!selectedFile || !categoryId) {
+      toast.error("الرجاء اختيار ملف");
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const fileExt = (selectedFile as any).name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${categoryId}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('files')
+        .upload(filePath, selectedFile as any);
+
+      if (uploadError) throw uploadError;
+
+      const { error: dbError } = await supabase
+        .from('files')
+        .insert({
+          name: (selectedFile as any).name,
+          file_path: filePath,
+          file_size: (selectedFile as any).size,
+          mime_type: (selectedFile as any).type,
+          category_id: categoryId
+        });
+
+      if (dbError) throw dbError;
+
+      toast.success("تم رفع الملف بنجاح");
+      setSelectedFile(null);
+      setIsUploadDialogOpen(false);
+      fetchFiles();
+      
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error: any) {
+      console.error("Error uploading file:", error);
+      toast.error("حدث خطأ في رفع الملف");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
 
@@ -236,6 +297,56 @@ const CategoryFiles = () => {
             العودة
           </Button>
           <div className="flex gap-3">
+            {isAdmin && (
+              <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2">
+                    <Upload className="w-4 h-4" />
+                    <span className="hidden sm:inline">رفع ملف</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>رفع ملف جديد</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="file">اختر الملف</Label>
+                      <Input
+                        id="file"
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileSelect}
+                        accept="*/*"
+                      />
+                      {selectedFile && (
+                        <p className="text-sm text-muted-foreground">
+                          الملف المحدد: {(selectedFile as any).name}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setIsUploadDialogOpen(false);
+                          setSelectedFile(null);
+                        }}
+                      >
+                        إلغاء
+                      </Button>
+                      <Button 
+                        onClick={handleUploadFile} 
+                        disabled={!selectedFile || isUploading}
+                      >
+                        {isUploading ? "جاري الرفع..." : "رفع"}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
             <Button 
               variant="outline" 
               onClick={handleShareCategory} 

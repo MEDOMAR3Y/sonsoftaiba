@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Footer } from "@/components/Footer";
 import { User, Session } from "@supabase/supabase-js";
-import { Home, Shield, LogOut, LogIn, UserCircle, ArrowRight, Calendar, Folder } from "lucide-react";
+import { Home, Shield, LogOut, LogIn, UserCircle, ArrowRight, Calendar } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import logoMain from "@/assets/logo-main.png";
@@ -14,12 +14,6 @@ interface Semester {
   id: string;
   name: string;
   semester_number: number;
-}
-
-interface Category {
-  id: string;
-  name: string;
-  description?: string;
 }
 
 interface AcademicLevel {
@@ -32,7 +26,6 @@ const SemesterView = () => {
   const { levelId } = useParams();
   const [level, setLevel] = useState<AcademicLevel | null>(null);
   const [semesters, setSemesters] = useState<Semester[]>([]);
-  const [categories, setCategories] = useState<Record<string, Category[]>>({});
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const { isAdmin } = useIsAdmin(user);
@@ -83,18 +76,6 @@ const SemesterView = () => {
       console.error("Error fetching semesters:", error);
     } else {
       setSemesters(data || []);
-      
-      // Fetch categories for each semester
-      data?.forEach(async (semester) => {
-        const { data: cats, error: catsError } = await supabase
-          .from("categories")
-          .select("*")
-          .eq("semester_id", semester.id);
-        
-        if (!catsError && cats) {
-          setCategories(prev => ({ ...prev, [semester.id]: cats }));
-        }
-      });
     }
   };
 
@@ -197,42 +178,25 @@ const SemesterView = () => {
           <h1 className="text-3xl font-bold text-center mb-8">{level.name}</h1>
         )}
 
-        {/* Semesters */}
-        <div className="space-y-8">
+        {/* Semesters Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {semesters.map((semester) => (
-            <div key={semester.id}>
-              <div className="flex items-center gap-3 mb-4">
-                <Calendar className="h-6 w-6 text-primary" />
-                <h2 className="text-2xl font-bold">{semester.name}</h2>
-              </div>
-              
-              {categories[semester.id] && categories[semester.id].length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {categories[semester.id].map((category) => (
-                    <Card
-                      key={category.id}
-                      onClick={() => navigate(`/category/${category.id}`)}
-                      className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 bg-card/80 backdrop-blur-sm"
-                    >
-                      <CardHeader className="space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
-                            <Folder className="h-8 w-8 text-primary" />
-                          </div>
-                        </div>
-                        <div>
-                          <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300">
-                            {category.name}
-                          </CardTitle>
-                        </div>
-                      </CardHeader>
-                    </Card>
-                  ))}
+            <Card
+              key={semester.id}
+              onClick={() => navigate(`/semester/${semester.id}/categories`)}
+              className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 bg-card/80 backdrop-blur-sm"
+            >
+              <CardHeader className="space-y-3">
+                <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300 w-fit mx-auto">
+                  <Calendar className="h-8 w-8 text-primary" />
                 </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-8">لا توجد مواد في هذا الترم</p>
-              )}
-            </div>
+                <div>
+                  <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300 text-center">
+                    {semester.name}
+                  </CardTitle>
+                </div>
+              </CardHeader>
+            </Card>
           ))}
         </div>
       </div>

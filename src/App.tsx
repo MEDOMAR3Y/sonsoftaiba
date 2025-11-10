@@ -12,6 +12,7 @@ import CategoryFiles from "./pages/CategoryFiles";
 import DepartmentView from "./pages/DepartmentView";
 import LevelView from "./pages/LevelView";
 import SemesterView from "./pages/SemesterView";
+import SemesterCategories from "./pages/SemesterCategories";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/department/:departmentId/levels" element={<LevelView />} />
             <Route path="/level/:levelId/semesters" element={<SemesterView />} />
+            <Route path="/semester/:semesterId/categories" element={<SemesterCategories />} />
             <Route path="/category/:categoryId" element={<CategoryFiles />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
