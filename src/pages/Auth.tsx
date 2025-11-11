@@ -13,7 +13,7 @@ import { Lock, Eye, EyeOff } from "lucide-react";
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -51,13 +51,19 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
+        if (!username.trim()) {
+          toast.error("يرجى إدخال اسم المستخدم");
+          setLoading(false);
+          return;
+        }
+        
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
             data: {
-              name: name || undefined
+              username: username
             }
           }
         });
@@ -91,18 +97,6 @@ const Auth = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleAuth} className="space-y-4">
-            {isSignUp && (
-              <div className="space-y-2">
-                <Label htmlFor="name">الاسم (اختياري)</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="أدخل اسمك"
-                />
-              </div>
-            )}
             <div className="space-y-2">
               <Label htmlFor="email">البريد الإلكتروني</Label>
               <Input
@@ -141,6 +135,19 @@ const Auth = () => {
                 </Button>
               </div>
             </div>
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label htmlFor="username">اسم المستخدم</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  placeholder="أدخل اسم المستخدم"
+                />
+              </div>
+            )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "جاري التحميل..." : isSignUp ? "إنشاء حساب" : "تسجيل الدخول"}
             </Button>

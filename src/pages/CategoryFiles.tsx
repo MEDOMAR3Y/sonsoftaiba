@@ -290,11 +290,11 @@ const CategoryFiles = () => {
         <div className="flex items-center justify-between mb-6">
           <Button 
             variant="ghost" 
-            onClick={() => navigate(-1)} 
+            onClick={() => window.history.back()} 
             className="gap-2 hover:bg-accent/10"
           >
             <ArrowRight className="w-4 h-4" />
-            العودة
+            رجوع
           </Button>
           <div className="flex gap-3">
             {isAdmin && (

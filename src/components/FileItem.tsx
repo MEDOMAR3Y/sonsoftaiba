@@ -19,11 +19,22 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: Fi
     return mb < 1 ? `${(bytes / 1024).toFixed(1)} KB` : `${mb.toFixed(1)} MB`;
   };
 
+  const canPreview = (fileName: string) => {
+    const ext = fileName.toLowerCase().split('.').pop();
+    const previewableExts = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'txt', 'mp4', 'webm'];
+    return previewableExts.includes(ext || '');
+  };
+
   const handleView = async () => {
+    if (!canPreview(name)) {
+      toast.info("لا يوجد معاينة لهذا الملف، قم بتحميله لرؤيته");
+      return;
+    }
+
     try {
       const { data, error } = await supabase.storage
         .from("files")
-        .createSignedUrl(filePath, 3600); // URL valid for 1 hour
+        .createSignedUrl(filePath, 3600);
 
       if (error) throw error;
 
