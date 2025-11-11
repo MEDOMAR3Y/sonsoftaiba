@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Footer } from "@/components/Footer";
+import { toast } from "sonner";
 import { User, Session } from "@supabase/supabase-js";
-import { Home, Shield, LogOut, LogIn, UserCircle, GraduationCap } from "lucide-react";
+import { Home, Shield, LogOut, LogIn, UserCircle, GraduationCap, Share2 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import logoMain from "@/assets/logo-main.png";
@@ -139,7 +140,21 @@ const DepartmentView = () => {
           />
         </div>
 
-        <h1 className="text-3xl font-bold text-center mb-8">اختر القسم</h1>
+        <div className="mb-6 flex justify-between items-center">
+          <h1 className="text-3xl font-bold">اختر القسم</h1>
+          <Button 
+            variant="default"
+            onClick={() => {
+              const url = window.location.href;
+              navigator.clipboard.writeText(url);
+              toast.success('تم نسخ رابط الأقسام');
+            }}
+            className="gap-2"
+          >
+            <Share2 className="h-4 w-4" />
+            مشاركة
+          </Button>
+        </div>
 
         {/* Departments Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

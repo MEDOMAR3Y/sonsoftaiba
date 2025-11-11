@@ -23,6 +23,7 @@ interface UserWithRole {
   email: string;
   created_at: string;
   role: string | null;
+  username?: string;
 }
 
 const Admin = () => {
@@ -524,6 +525,7 @@ const Admin = () => {
                     <thead>
                       <tr className="border-b border-border">
                         <th className="text-right p-4 font-semibold">البريد الإلكتروني</th>
+                        <th className="text-right p-4 font-semibold">اسم المستخدم</th>
                         <th className="text-right p-4 font-semibold">تاريخ الإنشاء</th>
                         <th className="text-right p-4 font-semibold">الدور</th>
                         <th className="text-right p-4 font-semibold">الإجراءات</th>
@@ -537,6 +539,9 @@ const Admin = () => {
                             {userItem.id === user?.id && (
                               <span className="mr-2 text-xs text-muted-foreground">(أنت)</span>
                             )}
+                          </td>
+                          <td className="p-4">
+                            {userItem.username || '-'}
                           </td>
                           <td className="p-4">
                             {new Date(userItem.created_at).toLocaleDateString('ar-EG', {

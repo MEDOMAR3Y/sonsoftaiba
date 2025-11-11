@@ -258,9 +258,9 @@ const CategoryFiles = () => {
       </nav>
 
       {/* Main Content */}
-      <div className="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Logo */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-8 sm:mb-12">
           <img 
             src={logoMain} 
             alt="SONS OF TAIBA" 
@@ -297,6 +297,14 @@ const CategoryFiles = () => {
             رجوع
           </Button>
           <div className="flex gap-3">
+            <Button 
+              variant="default"
+              onClick={handleShareCategory} 
+              className="gap-2"
+            >
+              <Share2 className="w-4 h-4" />
+              <span className="hidden sm:inline">مشاركة</span>
+            </Button>
             {isAdmin && (
               <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
                 <DialogTrigger asChild>
@@ -347,14 +355,6 @@ const CategoryFiles = () => {
                 </DialogContent>
               </Dialog>
             )}
-            <Button 
-              variant="outline" 
-              onClick={handleShareCategory} 
-              className="gap-2"
-            >
-              <Share2 className="w-4 h-4" />
-              <span className="hidden sm:inline">مشاركة</span>
-            </Button>
             {files.length > 0 && (
               <Button 
                 onClick={handleDownloadAll} 

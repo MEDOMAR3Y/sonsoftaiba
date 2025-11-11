@@ -36,14 +36,25 @@ serve(async (req) => {
       throw rolesError;
     }
 
-    // Combine users with their roles
+    // Get all profiles with usernames
+    const { data: profiles, error: profilesError } = await supabase
+      .from("profiles")
+      .select("id, username");
+
+    if (profilesError) {
+      console.error("Error fetching profiles:", profilesError);
+    }
+
+    // Combine users with their roles and usernames
     const usersWithRoles = users.map(user => {
       const userRole = roles?.find(r => r.user_id === user.id);
+      const userProfile = profiles?.find(p => p.id === user.id);
       return {
         id: user.id,
         email: user.email || "",
         created_at: user.created_at,
-        role: userRole?.role || null
+        role: userRole?.role || null,
+        username: userProfile?.username || null
       };
     });
 

@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Footer } from "@/components/Footer";
+import { toast } from "sonner";
 import { User, Session } from "@supabase/supabase-js";
-import { Home, Shield, LogOut, LogIn, UserCircle, ArrowRight, Calendar } from "lucide-react";
+import { Home, Shield, LogOut, LogIn, UserCircle, ArrowRight, Calendar, Share2 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import logoMain from "@/assets/logo-main.png";
@@ -163,14 +164,27 @@ const SemesterView = () => {
           />
         </div>
 
-        <div className="mb-6">
+        <div className="mb-6 flex justify-between items-center">
           <Button
             variant="ghost"
-            onClick={() => navigate(-1)}
+            onClick={() => window.history.back()}
             className="gap-2"
           >
             <ArrowRight className="h-4 w-4" />
-            العودة
+            رجوع
+          </Button>
+          
+          <Button 
+            variant="default"
+            onClick={() => {
+              const url = window.location.href;
+              navigator.clipboard.writeText(url);
+              toast.success('تم نسخ رابط الترمات');
+            }}
+            className="gap-2"
+          >
+            <Share2 className="h-4 w-4" />
+            مشاركة
           </Button>
         </div>
 
