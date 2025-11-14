@@ -396,7 +396,7 @@ const CategoryFiles = () => {
         <div className="space-y-2 mb-6">
           {/* Admin Buttons Row */}
           {isAdmin && (
-            <div className="grid grid-cols-2 gap-2 w-full">
+            <div className="grid grid-cols-3 gap-2 w-full">
               <Button 
                 variant="default"
                 onClick={openEditDialog} 
@@ -414,33 +414,11 @@ const CategoryFiles = () => {
                 <Trash2 className="w-4 h-4" />
                 <span>حذف</span>
               </Button>
-            </div>
-          )}
-          
-          {/* General Buttons Row */}
-          <div className={`grid gap-2 w-full ${isAdmin ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'}`}>
-            <Button 
-              variant="default" 
-              onClick={() => window.history.back()} 
-              className="gap-2 w-full"
-            >
-              <ArrowRight className="w-4 h-4" />
-              <span>رجوع</span>
-            </Button>
-            <Button 
-              variant="default"
-              onClick={handleShareCategory} 
-              className="gap-2 w-full"
-            >
-              <Share2 className="w-4 h-4" />
-              <span>مشاركة</span>
-            </Button>
-            {isAdmin && (
               <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
                 <DialogTrigger asChild>
                   <Button variant="default" className="gap-2 w-full">
                     <Upload className="w-4 h-4" />
-                    <span>رفع ملفات</span>
+                    <span>رفع</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -485,7 +463,27 @@ const CategoryFiles = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
-            )}
+            </div>
+          )}
+          
+          {/* General Buttons Row */}
+          <div className={`grid gap-2 w-full ${files.length > 0 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            <Button 
+              variant="default" 
+              onClick={() => window.history.back()} 
+              className="gap-2 w-full"
+            >
+              <ArrowRight className="w-4 h-4" />
+              <span>رجوع</span>
+            </Button>
+            <Button 
+              variant="default"
+              onClick={handleShareCategory} 
+              className="gap-2 w-full"
+            >
+              <Share2 className="w-4 h-4" />
+              <span>مشاركة</span>
+            </Button>
             {files.length > 0 && (
               <Button 
                 variant="default"

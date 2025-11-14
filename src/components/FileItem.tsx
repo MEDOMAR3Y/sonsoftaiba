@@ -99,12 +99,12 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: Fi
           )}
           
           {/* Action Buttons - Below file name */}
-          <div className="flex gap-2 mt-3">
+          <div className={`grid gap-2 mt-3 w-full ${isAdmin ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <Button
               size="sm"
               variant="outline"
               onClick={handleView}
-              className="gap-1.5"
+              className="gap-1.5 w-full"
             >
               <Eye className="w-4 h-4" />
               <span>معاينة</span>
@@ -113,7 +113,7 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: Fi
               size="sm"
               variant="outline"
               onClick={handleDownload}
-              className="gap-1.5"
+              className="gap-1.5 w-full"
             >
               <Download className="w-4 h-4" />
               <span>تحميل</span>
@@ -123,7 +123,7 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: Fi
                 size="sm"
                 variant="destructive"
                 onClick={handleDelete}
-                className="gap-1.5"
+                className="gap-1.5 w-full"
               >
                 <Trash2 className="w-4 h-4" />
                 <span>حذف</span>
