@@ -45,15 +45,15 @@ export const CategoryCard = ({ name, description, fileCount, onClick, department
       className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 bg-card/80 backdrop-blur-sm relative"
     >
       <CardHeader className="space-y-3">
-        <div className="flex items-start justify-between">
-          <div className="absolute top-4 right-4 p-2.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
+        <div className="relative">
+          <div className="absolute top-0 right-0 p-2.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
             <Icon className="h-6 w-6 text-primary" />
           </div>
-          <div className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm font-medium ml-auto">
+          <div className="absolute top-0 left-0 px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm font-medium">
             {fileCount} {fileCount === 1 ? 'ملف' : 'ملفات'}
           </div>
         </div>
-        <div className="pt-8">
+        <div className="pt-12">
           <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300">
             {name}
           </CardTitle>
