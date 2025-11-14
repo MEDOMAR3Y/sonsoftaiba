@@ -16,6 +16,12 @@ interface Category {
   name: string;
   description?: string;
   parent_id?: string | null;
+  semester_id?: string | null;
+  semester_name?: string;
+  semester_number?: number;
+  level_name?: string;
+  level_number?: number;
+  department_name?: string;
 }
 
 interface UserWithRole {
@@ -25,6 +31,20 @@ interface UserWithRole {
   role: string | null;
   username?: string;
 }
+
+const getLevelName = (levelNumber: number) => {
+  const arabicNumbers: { [key: number]: string } = {
+    1: "الأول",
+    2: "الثاني",
+    3: "الثالث",
+    4: "الرابع",
+    5: "الخامس",
+    6: "السادس",
+    7: "السابع",
+    8: "الثامن",
+  };
+  return `المستوى ${arabicNumbers[levelNumber] || levelNumber}`;
+};
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -113,13 +133,40 @@ const Admin = () => {
   const fetchCategories = async () => {
     const { data, error } = await supabase
       .from("categories")
-      .select("*")
+      .select(`
+        *,
+        semesters!inner (
+          name,
+          semester_number,
+          academic_levels!inner (
+            name,
+            level_number,
+            departments!inner (
+              name
+            )
+          )
+        )
+      `)
       .order("created_at", { ascending: false });
 
     if (error) {
+      console.error("Error fetching categories:", error);
       toast.error("فشل في تحميل الفئات");
     } else {
-      setCategories(data || []);
+      // Transform the nested data structure
+      const transformedData = (data || []).map((cat: any) => ({
+        id: cat.id,
+        name: cat.name,
+        description: cat.description,
+        parent_id: cat.parent_id,
+        semester_id: cat.semester_id,
+        semester_name: cat.semesters?.name,
+        semester_number: cat.semesters?.semester_number,
+        level_name: cat.semesters?.academic_levels?.name,
+        level_number: cat.semesters?.academic_levels?.level_number,
+        department_name: cat.semesters?.academic_levels?.departments?.name,
+      }));
+      setCategories(transformedData);
     }
   };
 
@@ -429,11 +476,32 @@ const Admin = () => {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {categories.filter(cat => !cat.parent_id).map((category) => (
                   <div key={category.id}>
-                    <Card className="hover:shadow-lg transition-shadow">
+                     <Card className="hover:shadow-lg transition-shadow">
                       <CardHeader>
                         <CardTitle className="text-lg">{category.name}</CardTitle>
                         {category.description && (
                           <CardDescription>{category.description}</CardDescription>
+                        )}
+                        {/* Department, Level, and Semester Info */}
+                        {category.department_name && (
+                          <div className="mt-3 space-y-1 text-sm text-muted-foreground border-t pt-3">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">القسم:</span>
+                              <span>{category.department_name}</span>
+                            </div>
+                            {category.level_number && (
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">المستوى:</span>
+                                <span>{getLevelName(category.level_number)}</span>
+                              </div>
+                            )}
+                            {category.semester_number && (
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">الترم:</span>
+                                <span>الترم {category.semester_number === 1 ? 'الأول' : 'الثاني'}</span>
+                              </div>
+                            )}
+                          </div>
                         )}
                       </CardHeader>
                       <CardContent className="space-y-2">
