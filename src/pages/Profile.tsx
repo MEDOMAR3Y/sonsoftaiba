@@ -102,20 +102,24 @@ const Profile = () => {
     setLoading(true);
 
     try {
-      // Delete user roles first
-      const { error: rolesError } = await supabase
-        .from("user_roles")
-        .delete()
-        .eq("user_id", user?.id);
+      if (!user?.id) {
+        throw new Error("لم يتم العثور على معرف المستخدم");
+      }
 
-      if (rolesError) throw rolesError;
+      // Call edge function to delete user
+      const { error: deleteError } = await supabase.functions.invoke("delete-user", {
+        body: { userId: user.id },
+      });
 
-      // Sign out and delete account
+      if (deleteError) throw deleteError;
+
+      // Sign out
       await supabase.auth.signOut();
       
       toast.success("تم حذف الحساب بنجاح");
       navigate("/");
     } catch (error: any) {
+      console.error("Error deleting account:", error);
       toast.error(error.message || "حدث خطأ أثناء حذف الحساب");
       setLoading(false);
     }

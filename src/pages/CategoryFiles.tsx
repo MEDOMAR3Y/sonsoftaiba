@@ -7,7 +7,8 @@ import { Footer } from "@/components/Footer";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, Download, Share2, Home, Shield, LogOut, LogIn, Upload } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { ArrowRight, Download, Share2, Home, Shield, LogOut, LogIn, Upload, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import JSZip from "jszip";
 import { User } from "@supabase/supabase-js";
@@ -28,6 +29,11 @@ interface Category {
   description?: string;
 }
 
+interface EditCategoryData {
+  name: string;
+  description: string;
+}
+
 
 interface ParentCategory {
   name: string;
@@ -44,6 +50,8 @@ const CategoryFiles = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editData, setEditData] = useState<EditCategoryData>({ name: '', description: '' });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -200,6 +208,87 @@ const CategoryFiles = () => {
     toast.success('تم نسخ رابط الفئة');
   };
 
+  const handleEditCategory = async () => {
+    if (!categoryId || !editData.name.trim()) {
+      toast.error("يرجى إدخال اسم الفئة");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const { error } = await supabase
+        .from("categories")
+        .update({
+          name: editData.name,
+          description: editData.description
+        })
+        .eq("id", categoryId);
+
+      if (error) throw error;
+
+      toast.success("تم تحديث الفئة بنجاح");
+      setIsEditDialogOpen(false);
+      fetchCategory();
+    } catch (error: any) {
+      console.error("Error updating category:", error);
+      toast.error("حدث خطأ في تحديث الفئة");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteCategory = async () => {
+    if (!categoryId) return;
+
+    if (!confirm("هل أنت متأكد من حذف هذه الفئة؟ سيتم حذف جميع الملفات المرتبطة بها.")) {
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Delete all files in storage
+      const { data: files } = await supabase
+        .from("files")
+        .select("file_path")
+        .eq("category_id", categoryId);
+
+      if (files) {
+        for (const file of files) {
+          await supabase.storage.from("files").remove([file.file_path]);
+        }
+      }
+
+      // Delete file records
+      await supabase.from("files").delete().eq("category_id", categoryId);
+
+      // Delete category
+      const { error } = await supabase
+        .from("categories")
+        .delete()
+        .eq("id", categoryId);
+
+      if (error) throw error;
+
+      toast.success("تم حذف الفئة بنجاح");
+      navigate(-1);
+    } catch (error: any) {
+      console.error("Error deleting category:", error);
+      toast.error("حدث خطأ في حذف الفئة");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const openEditDialog = () => {
+    if (category) {
+      setEditData({
+        name: category.name,
+        description: category.description || ''
+      });
+      setIsEditDialogOpen(true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
       {/* Navigation Bar */}
@@ -296,7 +385,28 @@ const CategoryFiles = () => {
             <ArrowRight className="w-4 h-4" />
             رجوع
           </Button>
-          <div className="flex gap-3">
+          <div className="flex gap-2 flex-wrap">
+            {isAdmin && (
+              <>
+                <Button 
+                  variant="outline"
+                  onClick={openEditDialog} 
+                  className="gap-2"
+                >
+                  <Edit className="w-4 h-4" />
+                  <span className="hidden sm:inline">تعديل</span>
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={handleDeleteCategory} 
+                  className="gap-2"
+                  disabled={isUploading}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">حذف</span>
+                </Button>
+              </>
+            )}
             <Button 
               variant="default"
               onClick={handleShareCategory} 
@@ -306,54 +416,100 @@ const CategoryFiles = () => {
               <span className="hidden sm:inline">مشاركة</span>
             </Button>
             {isAdmin && (
-              <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gap-2">
-                    <Upload className="w-4 h-4" />
-                    <span className="hidden sm:inline">رفع ملف</span>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>رفع ملف جديد</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="file">اختر الملف</Label>
-                      <Input
-                        id="file"
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileSelect}
-                        accept="*/*"
-                      />
-                      {selectedFile && (
-                        <p className="text-sm text-muted-foreground">
-                          الملف المحدد: {(selectedFile as any).name}
-                        </p>
-                      )}
+              <>
+                <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="gap-2">
+                      <Upload className="w-4 h-4" />
+                      <span className="hidden sm:inline">رفع ملف</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>رفع ملف جديد</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="file">اختر الملف</Label>
+                        <Input
+                          id="file"
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleFileSelect}
+                          accept="*/*"
+                        />
+                        {selectedFile && (
+                          <p className="text-sm text-muted-foreground">
+                            الملف المحدد: {(selectedFile as any).name}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setIsUploadDialogOpen(false);
+                            setSelectedFile(null);
+                          }}
+                        >
+                          إلغاء
+                        </Button>
+                        <Button 
+                          onClick={handleUploadFile} 
+                          disabled={!selectedFile || isUploading}
+                        >
+                          {isUploading ? "جاري الرفع..." : "رفع"}
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2 justify-end">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setIsUploadDialogOpen(false);
-                          setSelectedFile(null);
-                        }}
-                      >
-                        إلغاء
-                      </Button>
-                      <Button 
-                        onClick={handleUploadFile} 
-                        disabled={!selectedFile || isUploading}
-                      >
-                        {isUploading ? "جاري الرفع..." : "رفع"}
-                      </Button>
+                  </DialogContent>
+                </Dialog>
+                
+                <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>تعديل الفئة</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="categoryName">اسم الفئة</Label>
+                        <Input
+                          id="categoryName"
+                          value={editData.name}
+                          onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                          placeholder="أدخل اسم الفئة"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="categoryDescription">الوصف</Label>
+                        <Textarea
+                          id="categoryDescription"
+                          value={editData.description}
+                          onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                          placeholder="أدخل وصف الفئة (اختياري)"
+                          rows={3}
+                        />
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsEditDialogOpen(false)}
+                        >
+                          إلغاء
+                        </Button>
+                        <Button 
+                          onClick={handleEditCategory} 
+                          disabled={!editData.name.trim() || isUploading}
+                        >
+                          {isUploading ? "جاري التحديث..." : "تحديث"}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                  </DialogContent>
+                </Dialog>
+              </>
             )}
             {files.length > 0 && (
               <Button 
