@@ -198,14 +198,16 @@ const SemesterView = () => {
             <Card
               key={semester.id}
               onClick={() => navigate(`/semester/${semester.id}/categories`)}
-              className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 bg-card/80 backdrop-blur-sm"
+              className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 bg-card/80 backdrop-blur-sm relative"
             >
               <CardHeader className="space-y-3">
-                <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300 w-fit mx-auto">
-                  <Calendar className="h-8 w-8 text-primary" />
+                <div className="flex items-start justify-between">
+                  <div className="absolute top-4 right-4 w-12 h-12 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300 flex items-center justify-center">
+                    <span className="text-2xl font-bold text-primary">{semester.semester_number}</span>
+                  </div>
                 </div>
-                <div>
-                  <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300 text-center">
+                <div className="pt-8">
+                  <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300">
                     {semester.name}
                   </CardTitle>
                 </div>
