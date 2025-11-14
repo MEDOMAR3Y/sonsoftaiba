@@ -45,7 +45,6 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: Fi
       if (error) throw error;
 
       if (data?.signedUrl) {
-        // Get file extension to determine type
         const ext = name.split('.').pop()?.toLowerCase() || '';
         const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
         const videoExts = ['mp4', 'webm', 'ogg'];

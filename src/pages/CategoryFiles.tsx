@@ -47,7 +47,7 @@ const CategoryFiles = () => {
   const [user, setUser] = useState<User | null>(null);
   const { isAdmin } = useIsAdmin(user);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<FileList | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -110,9 +110,9 @@ const CategoryFiles = () => {
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file as any);
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      setSelectedFile(files);
     }
   };
 
@@ -123,31 +123,48 @@ const CategoryFiles = () => {
     }
 
     setIsUploading(true);
+    const filesArray = Array.from(selectedFile as FileList);
+    let successCount = 0;
+    let failCount = 0;
 
     try {
-      const fileExt = (selectedFile as any).name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `${categoryId}/${fileName}`;
+      for (const file of filesArray) {
+        try {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${Math.random()}.${fileExt}`;
+          const filePath = `${categoryId}/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('files')
-        .upload(filePath, selectedFile as any);
+          const { error: uploadError } = await supabase.storage
+            .from('files')
+            .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+          if (uploadError) throw uploadError;
 
-      const { error: dbError } = await supabase
-        .from('files')
-        .insert({
-          name: (selectedFile as any).name,
-          file_path: filePath,
-          file_size: (selectedFile as any).size,
-          mime_type: (selectedFile as any).type,
-          category_id: categoryId
-        });
+          const { error: dbError } = await supabase
+            .from('files')
+            .insert({
+              name: file.name,
+              file_path: filePath,
+              file_size: file.size,
+              mime_type: file.type,
+              category_id: categoryId
+            });
 
-      if (dbError) throw dbError;
+          if (dbError) throw dbError;
+          successCount++;
+        } catch (error) {
+          console.error("Error uploading file:", error);
+          failCount++;
+        }
+      }
 
-      toast.success("تم رفع الملف بنجاح");
+      if (successCount > 0) {
+        toast.success(`تم رفع ${successCount} ملف بنجاح`);
+      }
+      if (failCount > 0) {
+        toast.error(`فشل رفع ${failCount} ملف`);
+      }
+      
       setSelectedFile(null);
       setIsUploadDialogOpen(false);
       fetchFiles();
@@ -156,8 +173,8 @@ const CategoryFiles = () => {
         fileInputRef.current.value = '';
       }
     } catch (error: any) {
-      console.error("Error uploading file:", error);
-      toast.error("حدث خطأ في رفع الملف");
+      console.error("Error uploading files:", error);
+      toast.error("حدث خطأ في رفع الملفات");
     } finally {
       setIsUploading(false);
     }
@@ -376,74 +393,74 @@ const CategoryFiles = () => {
         )}
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-wrap gap-2 mb-6 justify-center">
           <Button 
-            variant="ghost" 
+            variant="default" 
             onClick={() => window.history.back()} 
-            className="gap-2 hover:bg-accent/10"
+            className="gap-2"
           >
             <ArrowRight className="w-4 h-4" />
-            رجوع
+            <span className="hidden sm:inline">رجوع</span>
           </Button>
-          <div className="flex gap-2 flex-wrap">
-            {isAdmin && (
-              <>
-                <Button 
-                  variant="outline"
-                  onClick={openEditDialog} 
-                  className="gap-2"
-                >
-                  <Edit className="w-4 h-4" />
-                  <span className="hidden sm:inline">تعديل</span>
-                </Button>
-                <Button 
-                  variant="destructive"
-                  onClick={handleDeleteCategory} 
-                  className="gap-2"
-                  disabled={isUploading}
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span className="hidden sm:inline">حذف</span>
-                </Button>
-              </>
-            )}
-            <Button 
-              variant="default"
-              onClick={handleShareCategory} 
-              className="gap-2"
-            >
-              <Share2 className="w-4 h-4" />
-              <span className="hidden sm:inline">مشاركة</span>
-            </Button>
-            {isAdmin && (
-              <>
-                <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="gap-2">
-                      <Upload className="w-4 h-4" />
-                      <span className="hidden sm:inline">رفع ملف</span>
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>رفع ملف جديد</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="file">اختر الملف</Label>
-                        <Input
-                          id="file"
-                          type="file"
-                          ref={fileInputRef}
-                          onChange={handleFileSelect}
-                          accept="*/*"
-                        />
-                        {selectedFile && (
-                          <p className="text-sm text-muted-foreground">
-                            الملف المحدد: {(selectedFile as any).name}
-                          </p>
-                        )}
-                      </div>
+          {isAdmin && (
+            <>
+              <Button 
+                variant="default"
+                onClick={openEditDialog} 
+                className="gap-2"
+              >
+                <Edit className="w-4 h-4" />
+                <span className="hidden sm:inline">تعديل</span>
+              </Button>
+              <Button 
+                variant="default"
+                onClick={handleDeleteCategory} 
+                className="gap-2"
+                disabled={isUploading}
+              >
+                <Trash2 className="w-4 h-4" />
+                <span className="hidden sm:inline">حذف</span>
+              </Button>
+            </>
+          )}
+          <Button 
+            variant="default"
+            onClick={handleShareCategory} 
+            className="gap-2"
+          >
+            <Share2 className="w-4 h-4" />
+            <span className="hidden sm:inline">مشاركة</span>
+          </Button>
+          {isAdmin && (
+            <>
+              <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="default" className="gap-2">
+                    <Upload className="w-4 h-4" />
+                    <span className="hidden sm:inline">رفع ملفات</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>رفع ملفات جديدة</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="file">اختر الملفات</Label>
+                      <Input
+                        id="file"
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileSelect}
+                        accept="*/*"
+                        multiple
+                      />
+                      {selectedFile && (
+                        <p className="text-sm text-muted-foreground">
+                          تم اختيار {selectedFile.length} ملف
+                        </p>
+                      )}
+                    </div>
                       <div className="flex gap-2 justify-end">
                         <Button
                           type="button"
@@ -510,17 +527,17 @@ const CategoryFiles = () => {
                   </DialogContent>
                 </Dialog>
               </>
-            )}
-            {files.length > 0 && (
-              <Button 
-                onClick={handleDownloadAll} 
-                className="gap-2"
-              >
-                <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">تحميل الكل</span>
-              </Button>
-            )}
-          </div>
+          )}
+          {files.length > 0 && (
+            <Button 
+              variant="default"
+              onClick={handleDownloadAll} 
+              className="gap-2"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">تحميل الكل</span>
+            </Button>
+          )}
         </div>
 
         {/* Files List */}
