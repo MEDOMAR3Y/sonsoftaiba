@@ -13,6 +13,7 @@ import { Home, Shield, LogOut, LogIn, UserCircle, ArrowRight, Folder, Plus, Shar
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { toast } from "sonner";
+import { CategoryCard } from "@/components/CategoryCard";
 import logoMain from "@/assets/logo-main.png";
 
 interface Category {
@@ -39,6 +40,7 @@ const SemesterCategories = () => {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryDescription, setNewCategoryDescription] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [fileCounts, setFileCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
@@ -58,6 +60,7 @@ const SemesterCategories = () => {
     if (semesterId) {
       fetchSemester();
       fetchCategories();
+      fetchFileCounts();
     }
   }, [semesterId]);
 
@@ -91,6 +94,32 @@ const SemesterCategories = () => {
     }
   };
 
+  const fetchFileCounts = async () => {
+    const { data: categoriesData } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("semester_id", semesterId);
+
+    if (!categoriesData) return;
+
+    const categoryIds = categoriesData.map(c => c.id);
+    
+    const { data, error } = await supabase
+      .from("files")
+      .select("category_id")
+      .in("category_id", categoryIds);
+
+    if (error) {
+      console.error("Error fetching file counts:", error);
+    } else {
+      const counts: Record<string, number> = {};
+      data?.forEach((file) => {
+        counts[file.category_id] = (counts[file.category_id] || 0) + 1;
+      });
+      setFileCounts(counts);
+    }
+  };
+
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -117,6 +146,7 @@ const SemesterCategories = () => {
       setNewCategoryDescription("");
       setIsDialogOpen(false);
       fetchCategories();
+      fetchFileCounts();
     } catch (error: any) {
       console.error("Error creating category:", error);
       toast.error("حدث خطأ في إنشاء الفئة");
@@ -294,27 +324,13 @@ const SemesterCategories = () => {
         {categories.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {categories.map((category) => (
-              <Card
+              <CategoryCard
                 key={category.id}
+                name={category.name}
+                description={category.description}
+                fileCount={fileCounts[category.id] || 0}
                 onClick={() => navigate(`/category/${category.id}`)}
-                className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 bg-card/80 backdrop-blur-sm"
-              >
-                <CardHeader className="space-y-3">
-                  <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300 w-fit mx-auto">
-                    <Folder className="h-8 w-8 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300 text-center">
-                      {category.name}
-                    </CardTitle>
-                    {category.description && (
-                      <p className="text-sm text-muted-foreground mt-2 text-center">
-                        {category.description}
-                      </p>
-                    )}
-                  </div>
-                </CardHeader>
-              </Card>
+              />
             ))}
           </div>
         ) : (
