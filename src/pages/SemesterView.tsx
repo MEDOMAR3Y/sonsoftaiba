@@ -20,7 +20,22 @@ interface Semester {
 interface AcademicLevel {
   id: string;
   name: string;
+  level_number: number;
 }
+
+const getLevelName = (levelNumber: number) => {
+  const arabicNumbers: { [key: number]: string } = {
+    1: "الأول",
+    2: "الثاني",
+    3: "الثالث",
+    4: "الرابع",
+    5: "الخامس",
+    6: "السادس",
+    7: "السابع",
+    8: "الثامن",
+  };
+  return `المستوى ${arabicNumbers[levelNumber] || levelNumber}`;
+};
 
 const SemesterView = () => {
   const navigate = useNavigate();
@@ -189,7 +204,7 @@ const SemesterView = () => {
         </div>
 
         {level && (
-          <h1 className="text-3xl font-bold text-center mb-8">{level.name}</h1>
+          <h1 className="text-3xl font-bold text-center mb-8">{getLevelName(level.level_number)}</h1>
         )}
 
         {/* Semesters Grid */}
