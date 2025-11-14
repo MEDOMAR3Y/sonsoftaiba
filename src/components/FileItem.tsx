@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Download, FileText, Trash2, Eye } from "lucide-react";
+import { Download, Eye, Trash2, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { FilePreviewDialog } from "./FilePreviewDialog";
 
 interface FileItemProps {
   id: string;
@@ -13,6 +15,10 @@ interface FileItemProps {
 }
 
 export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: FileItemProps) => {
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [fileType, setFileType] = useState<string>("");
+
   const formatFileSize = (bytes?: number) => {
     if (!bytes) return '';
     const mb = bytes / (1024 * 1024);
@@ -39,8 +45,19 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: Fi
       if (error) throw error;
 
       if (data?.signedUrl) {
-        window.open(data.signedUrl, '_blank');
-        toast.success("تم فتح الملف في نافذة جديدة");
+        // Get file extension to determine type
+        const ext = name.split('.').pop()?.toLowerCase() || '';
+        const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+        const videoExts = ['mp4', 'webm', 'ogg'];
+        
+        let mimeType = '';
+        if (ext === 'pdf') mimeType = 'application/pdf';
+        else if (imageExts.includes(ext)) mimeType = 'image/' + ext;
+        else if (videoExts.includes(ext)) mimeType = 'video/' + ext;
+
+        setFileType(mimeType);
+        setPreviewUrl(data.signedUrl);
+        setPreviewOpen(true);
       }
     } catch (error: any) {
       console.error("Error viewing file:", error);
@@ -98,48 +115,58 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: Fi
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-all gap-3">
-      <div className="flex items-center gap-3 flex-1 w-full sm:w-auto">
-        <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-          <FileText className="w-5 h-5 text-primary" />
+    <>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-all gap-3">
+        <div className="flex items-center gap-3 flex-1 w-full sm:w-auto">
+          <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+            <FileText className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-medium truncate">{name}</p>
+            {fileSize && (
+              <p className="text-sm text-muted-foreground">{formatFileSize(fileSize)}</p>
+            )}
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-medium truncate">{name}</p>
-          {fileSize && (
-            <p className="text-sm text-muted-foreground">{formatFileSize(fileSize)}</p>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleView}
+            className="flex-1 sm:flex-none"
+          >
+            <Eye className="w-4 h-4 sm:ml-2" />
+            <span className="hidden sm:inline">معاينة</span>
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleDownload}
+            className="flex-1 sm:flex-none"
+          >
+            <Download className="w-4 h-4 sm:ml-2" />
+            <span className="hidden sm:inline">تحميل</span>
+          </Button>
+          {isAdmin && (
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleDelete}
+              className="flex-1 sm:flex-none"
+            >
+              <Trash2 className="w-4 h-4 sm:ml-2" />
+              <span className="hidden sm:inline">حذف</span>
+            </Button>
           )}
         </div>
       </div>
-      <div className="flex gap-2 w-full sm:w-auto">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handleView}
-          className="gap-2 flex-1 sm:flex-initial"
-        >
-          <Eye className="w-4 h-4" />
-          <span className="sm:inline">معاينة</span>
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handleDownload}
-          className="gap-2 flex-1 sm:flex-initial"
-        >
-          <Download className="w-4 h-4" />
-          <span className="sm:inline">تحميل</span>
-        </Button>
-        {isAdmin && (
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={handleDelete}
-            className="shrink-0"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        )}
-      </div>
-    </div>
+      <FilePreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        fileUrl={previewUrl}
+        fileName={name}
+        fileType={fileType}
+      />
+    </>
   );
 };
