@@ -24,6 +24,20 @@ interface AcademicLevel {
   level_number: number;
 }
 
+const getLevelName = (levelNumber: number) => {
+  const arabicNumbers: { [key: number]: string } = {
+    1: "الأول",
+    2: "الثاني",
+    3: "الثالث",
+    4: "الرابع",
+    5: "الخامس",
+    6: "السادس",
+    7: "السابع",
+    8: "الثامن",
+  };
+  return `المستوى ${arabicNumbers[levelNumber] || levelNumber}`;
+};
+
 const LevelView = () => {
   const navigate = useNavigate();
   const { departmentId } = useParams();
@@ -191,7 +205,7 @@ const LevelView = () => {
         </div>
 
         {department && (
-          <h1 className="text-3xl font-bold text-center mb-8">{department.name} - اختر المستوى الدراسي</h1>
+          <h1 className="text-3xl font-bold text-center mb-8">{department.name}</h1>
         )}
 
         {/* Levels Grid */}
@@ -210,7 +224,7 @@ const LevelView = () => {
                 </div>
                 <div className="pt-8">
                   <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300">
-                    {level.name}
+                    {getLevelName(level.level_number)}
                   </CardTitle>
                 </div>
               </CardHeader>
