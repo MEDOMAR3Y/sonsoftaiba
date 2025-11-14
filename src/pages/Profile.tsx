@@ -24,6 +24,10 @@ const Profile = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [username, setUsername] = useState("");
+  const [newUsername, setNewUsername] = useState("");
+  const [passwordForUsername, setPasswordForUsername] = useState("");
+  const [showPasswordForUsername, setShowPasswordForUsername] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
@@ -32,6 +36,9 @@ const Profile = () => {
       
       if (!session?.user) {
         navigate("/auth");
+      } else {
+        // Fetch username when user is logged in
+        fetchUsername(session.user.id);
       }
     });
 
@@ -41,11 +48,25 @@ const Profile = () => {
       
       if (!session?.user) {
         navigate("/auth");
+      } else {
+        fetchUsername(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const fetchUsername = async (userId: string) => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("username")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (!error && data) {
+      setUsername(data.username || "");
+    }
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -85,6 +106,73 @@ const Profile = () => {
       setConfirmPassword("");
     } catch (error: any) {
       toast.error(error.message || "حدث خطأ أثناء تغيير كلمة المرور");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChangeUsername = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!newUsername.trim()) {
+      toast.error("يرجى إدخال اسم المستخدم الجديد");
+      return;
+    }
+
+    if (!passwordForUsername) {
+      toast.error("يرجى إدخال كلمة المرور للتأكيد");
+      return;
+    }
+
+    if (newUsername === username) {
+      toast.error("اسم المستخدم الجديد مطابق للقديم");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Verify password first
+      if (!user?.email) throw new Error("لم يتم العثور على البريد الإلكتروني");
+      
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: passwordForUsername,
+      });
+
+      if (signInError) {
+        toast.error("كلمة المرور غير صحيحة");
+        setLoading(false);
+        return;
+      }
+
+      // Check if username is already taken
+      const { data: existingUser } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("username", newUsername)
+        .maybeSingle();
+
+      if (existingUser) {
+        toast.error("اسم المستخدم مستخدم بالفعل");
+        setLoading(false);
+        return;
+      }
+
+      // Update username
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ username: newUsername })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      toast.success("تم تغيير اسم المستخدم بنجاح");
+      setUsername(newUsername);
+      setNewUsername("");
+      setPasswordForUsername("");
+    } catch (error: any) {
+      toast.error(error.message || "حدث خطأ أثناء تغيير اسم المستخدم");
     } finally {
       setLoading(false);
     }
@@ -206,6 +294,14 @@ const Profile = () => {
                 />
               </div>
               <div>
+                <Label>اسم المستخدم</Label>
+                <Input
+                  value={username || "لم يتم تعيين اسم مستخدم"}
+                  disabled
+                  className="bg-muted/50"
+                />
+              </div>
+              <div>
                 <Label>الصلاحية</Label>
                 <Input
                   value={isAdmin ? "مدير النظام (Admin)" : "مستخدم عادي (User)"}
@@ -225,6 +321,57 @@ const Profile = () => {
                   className="bg-muted/50"
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Change Username Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>تغيير اسم المستخدم</CardTitle>
+              <CardDescription>قم بتحديث اسم المستخدم الخاص بك</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleChangeUsername} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="newUsername">اسم المستخدم الجديد</Label>
+                  <Input
+                    id="newUsername"
+                    type="text"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    placeholder="أدخل اسم المستخدم الجديد"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="passwordForUsername">كلمة المرور للتأكيد</Label>
+                  <div className="relative">
+                    <Input
+                      id="passwordForUsername"
+                      type={showPasswordForUsername ? "text" : "password"}
+                      value={passwordForUsername}
+                      onChange={(e) => setPasswordForUsername(e.target.value)}
+                      placeholder="أدخل كلمة المرور الحالية"
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute left-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPasswordForUsername(!showPasswordForUsername)}
+                    >
+                      {showPasswordForUsername ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                <Button type="submit" disabled={loading} className="w-full">
+                  {loading ? "جاري التحديث..." : "تحديث اسم المستخدم"}
+                </Button>
+              </form>
             </CardContent>
           </Card>
 
