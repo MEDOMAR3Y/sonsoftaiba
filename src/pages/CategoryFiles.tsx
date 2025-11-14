@@ -393,51 +393,54 @@ const CategoryFiles = () => {
         )}
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap gap-2 mb-6 justify-center">
-          <Button 
-            variant="default" 
-            onClick={() => window.history.back()} 
-            className="gap-2"
-          >
-            <ArrowRight className="w-4 h-4" />
-            <span className="hidden sm:inline">رجوع</span>
-          </Button>
+        <div className="space-y-2 mb-6">
+          {/* Admin Buttons Row */}
           {isAdmin && (
-            <>
+            <div className="grid grid-cols-2 gap-2 w-full">
               <Button 
                 variant="default"
                 onClick={openEditDialog} 
-                className="gap-2"
+                className="gap-2 w-full"
               >
                 <Edit className="w-4 h-4" />
-                <span className="hidden sm:inline">تعديل</span>
+                <span>تعديل</span>
               </Button>
               <Button 
                 variant="default"
                 onClick={handleDeleteCategory} 
-                className="gap-2"
+                className="gap-2 w-full"
                 disabled={isUploading}
               >
                 <Trash2 className="w-4 h-4" />
-                <span className="hidden sm:inline">حذف</span>
+                <span>حذف</span>
               </Button>
-            </>
+            </div>
           )}
-          <Button 
-            variant="default"
-            onClick={handleShareCategory} 
-            className="gap-2"
-          >
-            <Share2 className="w-4 h-4" />
-            <span className="hidden sm:inline">مشاركة</span>
-          </Button>
-          {isAdmin && (
-            <>
+          
+          {/* General Buttons Row */}
+          <div className={`grid gap-2 w-full ${isAdmin ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'}`}>
+            <Button 
+              variant="default" 
+              onClick={() => window.history.back()} 
+              className="gap-2 w-full"
+            >
+              <ArrowRight className="w-4 h-4" />
+              <span>رجوع</span>
+            </Button>
+            <Button 
+              variant="default"
+              onClick={handleShareCategory} 
+              className="gap-2 w-full"
+            >
+              <Share2 className="w-4 h-4" />
+              <span>مشاركة</span>
+            </Button>
+            {isAdmin && (
               <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="default" className="gap-2">
+                  <Button variant="default" className="gap-2 w-full">
                     <Upload className="w-4 h-4" />
-                    <span className="hidden sm:inline">رفع ملفات</span>
+                    <span>رفع ملفات</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -482,61 +485,64 @@ const CategoryFiles = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
-                
-                <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>تعديل الفئة</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="categoryName">اسم الفئة</Label>
-                        <Input
-                          id="categoryName"
-                          value={editData.name}
-                          onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                          placeholder="أدخل اسم الفئة"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="categoryDescription">الوصف</Label>
-                        <Textarea
-                          id="categoryDescription"
-                          value={editData.description}
-                          onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                          placeholder="أدخل وصف الفئة (اختياري)"
-                          rows={3}
-                        />
-                      </div>
-                      <div className="flex gap-2 justify-end">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setIsEditDialogOpen(false)}
-                        >
-                          إلغاء
-                        </Button>
-                        <Button 
-                          onClick={handleEditCategory} 
-                          disabled={!editData.name.trim() || isUploading}
-                        >
-                          {isUploading ? "جاري التحديث..." : "تحديث"}
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </>
-          )}
-          {files.length > 0 && (
-            <Button 
-              variant="default"
-              onClick={handleDownloadAll} 
-              className="gap-2"
-            >
-              <Download className="w-4 h-4" />
-              <span className="hidden sm:inline">تحميل الكل</span>
-            </Button>
+            )}
+            {files.length > 0 && (
+              <Button 
+                variant="default"
+                onClick={handleDownloadAll} 
+                className="gap-2 w-full"
+              >
+                <Download className="w-4 h-4" />
+                <span>تحميل الكل</span>
+              </Button>
+            )}
+          </div>
+          
+          {/* Edit Dialog */}
+          {isAdmin && (
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>تعديل الفئة</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="categoryName">اسم الفئة</Label>
+                    <Input
+                      id="categoryName"
+                      value={editData.name}
+                      onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                      placeholder="أدخل اسم الفئة"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="categoryDescription">الوصف</Label>
+                    <Textarea
+                      id="categoryDescription"
+                      value={editData.description}
+                      onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                      placeholder="أدخل وصف الفئة (اختياري)"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsEditDialogOpen(false)}
+                    >
+                      إلغاء
+                    </Button>
+                    <Button 
+                      onClick={handleEditCategory} 
+                      disabled={!editData.name.trim() || isUploading}
+                    >
+                      {isUploading ? "جاري التحديث..." : "تحديث"}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           )}
         </div>
 
