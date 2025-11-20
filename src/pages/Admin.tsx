@@ -188,6 +188,37 @@ const Admin = () => {
     return labels[actionType] || actionType;
   };
 
+  const getActionIcon = (actionType: string) => {
+    switch (actionType) {
+      case "upload":
+        return "📤";
+      case "download":
+        return "📥";
+      case "delete":
+      case "delete_category":
+      case "delete_user":
+        return "🗑️";
+      case "create_category":
+        return "➕";
+      case "edit_category":
+        return "✏️";
+      case "change_role":
+        return "👤";
+      default:
+        return "📝";
+    }
+  };
+
+  const getTargetTypeLabel = (targetType: string | null) => {
+    const labels: Record<string, string> = {
+      file: "ملف",
+      category: "فئة",
+      user: "مستخدم",
+      role: "دور",
+    };
+    return targetType ? labels[targetType] || targetType : "";
+  };
+
   const formatLogDate = (dateString: string | null) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -758,29 +789,77 @@ const Admin = () => {
                   لا توجد نشاطات مسجلة بعد
                 </p>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {logs.map((log) => (
                     <div
                       key={log.id}
                       className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
                     >
-                      <div className="flex justify-between items-start gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-base">
+                      {/* Header with action and date */}
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className="text-2xl flex-shrink-0">{getActionIcon(log.action_type)}</span>
+                          <div className="font-bold text-lg">
                             {getActionLabel(log.action_type)}
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            المستخدم: {log.user_email}
-                          </div>
-                          {log.target_name && (
-                            <div className="text-sm text-muted-foreground truncate">
-                              الهدف: {log.target_name}
-                            </div>
-                          )}
                         </div>
-                        <div className="text-xs text-muted-foreground whitespace-nowrap">
+                        <div className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
                           {formatLogDate(log.created_at)}
                         </div>
+                      </div>
+
+                      {/* Details Grid */}
+                      <div className="space-y-2 bg-muted/30 rounded-md p-3">
+                        {/* Who did it */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1">
+                          <span className="text-sm font-semibold text-muted-foreground min-w-[80px]">
+                            👤 المستخدم:
+                          </span>
+                          <span className="text-sm font-medium break-all">
+                            {log.user_email || "غير معروف"}
+                          </span>
+                        </div>
+
+                        {/* What was targeted */}
+                        {log.target_type && (
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1">
+                            <span className="text-sm font-semibold text-muted-foreground min-w-[80px]">
+                              🎯 النوع:
+                            </span>
+                            <span className="text-sm font-medium">
+                              {getTargetTypeLabel(log.target_type)}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Target name */}
+                        {log.target_name && (
+                          <div className="flex flex-col sm:flex-row sm:items-start gap-1">
+                            <span className="text-sm font-semibold text-muted-foreground min-w-[80px]">
+                              📋 الاسم:
+                            </span>
+                            <span className="text-sm font-medium break-words flex-1">
+                              {log.target_name}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Additional details */}
+                        {log.details && Object.keys(log.details).length > 0 && (
+                          <div className="flex flex-col gap-1 pt-2 border-t border-border/50">
+                            <span className="text-sm font-semibold text-muted-foreground">
+                              ℹ️ تفاصيل إضافية:
+                            </span>
+                            <div className="text-xs bg-background/50 rounded p-2 break-words">
+                              {Object.entries(log.details).map(([key, value]) => (
+                                <div key={key} className="flex gap-2">
+                                  <span className="font-semibold">{key}:</span>
+                                  <span>{String(value)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
