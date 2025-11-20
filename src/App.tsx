@@ -13,6 +13,7 @@ import DepartmentView from "./pages/DepartmentView";
 import LevelView from "./pages/LevelView";
 import SemesterView from "./pages/SemesterView";
 import SemesterCategories from "./pages/SemesterCategories";
+import ActivityLogs from "./pages/ActivityLogs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/" element={<DepartmentView />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/activity-logs" element={<ActivityLogs />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/department/:departmentId/levels" element={<LevelView />} />
             <Route path="/level/:levelId/semesters" element={<SemesterView />} />
