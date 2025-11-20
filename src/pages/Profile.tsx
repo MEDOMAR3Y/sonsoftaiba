@@ -28,6 +28,7 @@ const Profile = () => {
   const [newUsername, setNewUsername] = useState("");
   const [passwordForUsername, setPasswordForUsername] = useState("");
   const [showPasswordForUsername, setShowPasswordForUsername] = useState(false);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
@@ -65,6 +66,16 @@ const Profile = () => {
 
     if (!error && data) {
       setUsername(data.username || "");
+    }
+
+    // Fetch user roles
+    const { data: rolesData, error: rolesError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+
+    if (!rolesError && rolesData) {
+      setUserRoles(rolesData.map(r => r.role));
     }
   };
 
@@ -302,12 +313,24 @@ const Profile = () => {
                 />
               </div>
               <div>
-                <Label>الصلاحية</Label>
-                <Input
-                  value={isAdmin ? "مدير النظام (Admin)" : "مستخدم عادي (User)"}
-                  disabled
-                  className="bg-muted/50"
-                />
+                <Label>الصلاحيات</Label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {userRoles.length === 0 ? (
+                    <span className="text-sm text-muted-foreground">لا توجد صلاحيات</span>
+                  ) : (
+                    userRoles.map((role) => (
+                      <span
+                        key={role}
+                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary border border-primary/20"
+                      >
+                        {role === "admin" && "مدير"}
+                        {role === "moderator" && "محرر"}
+                        {role === "downloader" && "محمل"}
+                        {role === "viewer" && "مشاهد"}
+                      </span>
+                    ))
+                  )}
+                </div>
               </div>
               <div>
                 <Label>تاريخ الإنشاء</Label>
