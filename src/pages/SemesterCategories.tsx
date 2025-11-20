@@ -147,10 +147,23 @@ const SemesterCategories = () => {
     setIsCreating(true);
 
     try {
+      // Generate slug using AI translation
+      const { data: slugData, error: slugError } = await supabase.functions.invoke('translate-to-slug', {
+        body: { text: newCategoryName }
+      });
+
+      if (slugError) {
+        console.error("Error generating slug:", slugError);
+        toast.error("حدث خطأ في إنشاء الرابط");
+        setIsCreating(false);
+        return;
+      }
+
       const { error } = await supabase
         .from("categories")
         .insert({
           name: newCategoryName,
+          slug: slugData.slug,
           description: newCategoryDescription || null,
           semester_id: semester.id
         });
@@ -345,7 +358,7 @@ const SemesterCategories = () => {
                 name={category.name}
                 description={category.description}
                 fileCount={fileCounts[category.id] || 0}
-                onClick={() => navigate(`/${semester.slug}/categories/${category.slug || category.id}`)}
+                onClick={() => navigate(`/${semester.slug}/categories/${category.slug}`)}
               />
             ))}
           </div>
