@@ -723,80 +723,84 @@ const Admin = () => {
               </CardContent>
             </Card>
           ) : (
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="text-right p-4 font-semibold">البريد الإلكتروني</th>
-                        <th className="text-right p-4 font-semibold">اسم المستخدم</th>
-                        <th className="text-right p-4 font-semibold">تاريخ الإنشاء</th>
-                        <th className="text-right p-4 font-semibold">الدور</th>
-                        <th className="text-right p-4 font-semibold">الإجراءات</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {users.map((userItem) => (
-                        <tr key={userItem.id} className="border-b border-border hover:bg-muted/50">
-                          <td className="p-4">
+            <div className="space-y-4">
+              {users.map((userItem) => (
+                <Card key={userItem.id}>
+                  <CardContent className="p-6">
+                    <div className="border rounded-lg p-4 hover:bg-accent/50 transition-colors">
+                      {/* Header with email and date */}
+                      <div className="flex items-start justify-between gap-3 mb-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-lg flex items-center gap-2">
                             {userItem.email}
                             {userItem.id === user?.id && (
-                              <span className="mr-2 text-xs text-muted-foreground">(أنت)</span>
+                              <span className="text-xs text-muted-foreground">(أنت)</span>
                             )}
-                          </td>
-                          <td className="p-4">
-                            {userItem.username || '-'}
-                          </td>
-                          <td className="p-4">
-                            {new Date(userItem.created_at).toLocaleDateString('ar-EG', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric'
-                            })}
-                          </td>
-                          <td className="p-4">
-                            <div className="flex flex-col gap-2">
-                              {["admin", "moderator", "downloader", "viewer"].map((role) => (
-                                <label key={role} className="flex items-center gap-2 cursor-pointer">
-                                  <input
-                                    type="checkbox"
-                                    className="rounded border-input"
-                                    checked={hasRole(userItem.id, role)}
-                                    onChange={() => handleToggleUserRole(
-                                      userItem.id, 
-                                      role as "admin" | "moderator" | "downloader" | "viewer",
-                                      hasRole(userItem.id, role)
-                                    )}
-                                    disabled={userItem.id === user?.id}
-                                  />
-                                  <span className="text-sm">
-                                    {role === "admin" && "مدير"}
-                                    {role === "moderator" && "محرر"}
-                                    {role === "downloader" && "محمل"}
-                                    {role === "viewer" && "مشاهد"}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDeleteUser(userItem.id, userItem.email)}
-                              disabled={userItem.id === user?.id || loading}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+                          </div>
+                          <div className="text-sm text-muted-foreground mt-1">
+                            {userItem.username || 'لا يوجد اسم مستخدم'}
+                          </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
+                          {new Date(userItem.created_at).toLocaleDateString('ar-EG', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Details Grid */}
+                      <div className="space-y-3 bg-muted/30 rounded-md p-4">
+                        {/* Roles Section */}
+                        <div>
+                          <span className="text-sm font-semibold text-muted-foreground block mb-2">
+                            👤 الصلاحيات:
+                          </span>
+                          <div className="flex flex-col gap-2">
+                            {["admin", "moderator", "downloader", "viewer"].map((role) => (
+                              <label key={role} className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  className="rounded border-input"
+                                  checked={hasRole(userItem.id, role)}
+                                  onChange={() => handleToggleUserRole(
+                                    userItem.id, 
+                                    role as "admin" | "moderator" | "downloader" | "viewer",
+                                    hasRole(userItem.id, role)
+                                  )}
+                                  disabled={userItem.id === user?.id}
+                                />
+                                <span className="text-sm">
+                                  {role === "admin" && "مدير"}
+                                  {role === "moderator" && "محرر"}
+                                  {role === "downloader" && "محمل"}
+                                  {role === "viewer" && "مشاهد"}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Delete Button */}
+                        <div className="pt-2 border-t border-border/50">
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteUser(userItem.id, userItem.email)}
+                            disabled={userItem.id === user?.id || loading}
+                            className="w-full gap-2"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            حذف المستخدم
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
         </div>
 
