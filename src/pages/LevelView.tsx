@@ -14,6 +14,7 @@ import logoMain from "@/assets/logo-main.png";
 interface Department {
   id: string;
   name: string;
+  slug: string;
   years_count: number;
   has_preparatory: boolean;
 }
@@ -21,6 +22,7 @@ interface Department {
 interface AcademicLevel {
   id: string;
   name: string;
+  slug: string;
   level_number: number;
 }
 
@@ -40,7 +42,7 @@ const getLevelName = (levelNumber: number) => {
 
 const LevelView = () => {
   const navigate = useNavigate();
-  const { departmentId } = useParams();
+  const { departmentId: departmentSlug } = useParams();
   const [department, setDepartment] = useState<Department | null>(null);
   const [levels, setLevels] = useState<AcademicLevel[]>([]);
   const [user, setUser] = useState<User | null>(null);
@@ -62,17 +64,22 @@ const LevelView = () => {
   }, []);
 
   useEffect(() => {
-    if (departmentId) {
+    if (departmentSlug) {
       fetchDepartment();
+    }
+  }, [departmentSlug]);
+
+  useEffect(() => {
+    if (department) {
       fetchLevels();
     }
-  }, [departmentId]);
+  }, [department]);
 
   const fetchDepartment = async () => {
     const { data, error } = await supabase
       .from("departments")
       .select("*")
-      .eq("id", departmentId)
+      .eq("slug", departmentSlug)
       .maybeSingle();
 
     if (error) {
@@ -83,10 +90,12 @@ const LevelView = () => {
   };
 
   const fetchLevels = async () => {
+    if (!department?.id) return;
+    
     const { data, error } = await supabase
       .from("academic_levels")
       .select("*")
-      .eq("department_id", departmentId)
+      .eq("department_id", department.id)
       .order("level_number");
 
     if (error) {
@@ -213,7 +222,7 @@ const LevelView = () => {
           {levels.map((level) => (
             <Card
               key={level.id}
-              onClick={() => navigate(`/level/${level.id}/semesters`)}
+              onClick={() => navigate(`/level/${level.slug}/semesters`)}
               className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 bg-card/80 backdrop-blur-sm relative"
             >
               <CardHeader className="space-y-3">

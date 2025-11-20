@@ -19,18 +19,20 @@ import logoMain from "@/assets/logo-main.png";
 interface Category {
   id: string;
   name: string;
+  slug?: string;
   description?: string;
 }
 
 interface Semester {
   id: string;
   name: string;
+  slug: string;
   semester_number: number;
 }
 
 const SemesterCategories = () => {
   const navigate = useNavigate();
-  const { semesterId } = useParams();
+  const { semesterId: semesterSlug } = useParams();
   const [semester, setSemester] = useState<Semester | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [user, setUser] = useState<User | null>(null);
@@ -57,18 +59,23 @@ const SemesterCategories = () => {
   }, []);
 
   useEffect(() => {
-    if (semesterId) {
+    if (semesterSlug) {
       fetchSemester();
+    }
+  }, [semesterSlug]);
+
+  useEffect(() => {
+    if (semester) {
       fetchCategories();
       fetchFileCounts();
     }
-  }, [semesterId]);
+  }, [semester]);
 
   const fetchSemester = async () => {
     const { data, error } = await supabase
       .from("semesters")
       .select("*")
-      .eq("id", semesterId)
+      .eq("slug", semesterSlug)
       .maybeSingle();
 
     if (error) {
@@ -80,10 +87,12 @@ const SemesterCategories = () => {
   };
 
   const fetchCategories = async () => {
+    if (!semester?.id) return;
+    
     const { data, error } = await supabase
       .from("categories")
       .select("*")
-      .eq("semester_id", semesterId)
+      .eq("semester_id", semester.id)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -95,10 +104,12 @@ const SemesterCategories = () => {
   };
 
   const fetchFileCounts = async () => {
+    if (!semester?.id) return;
+    
     const { data: categoriesData } = await supabase
       .from("categories")
       .select("id")
-      .eq("semester_id", semesterId);
+      .eq("semester_id", semester.id);
 
     if (!categoriesData) return;
 
@@ -128,6 +139,11 @@ const SemesterCategories = () => {
       return;
     }
 
+    if (!semester?.id) {
+      toast.error("لم يتم العثور على الترم");
+      return;
+    }
+
     setIsCreating(true);
 
     try {
@@ -136,7 +152,7 @@ const SemesterCategories = () => {
         .insert({
           name: newCategoryName,
           description: newCategoryDescription || null,
-          semester_id: semesterId
+          semester_id: semester.id
         });
 
       if (error) throw error;

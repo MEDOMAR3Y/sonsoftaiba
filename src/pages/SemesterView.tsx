@@ -14,12 +14,14 @@ import logoMain from "@/assets/logo-main.png";
 interface Semester {
   id: string;
   name: string;
+  slug: string;
   semester_number: number;
 }
 
 interface AcademicLevel {
   id: string;
   name: string;
+  slug: string;
   level_number: number;
 }
 
@@ -39,7 +41,7 @@ const getLevelName = (levelNumber: number) => {
 
 const SemesterView = () => {
   const navigate = useNavigate();
-  const { levelId } = useParams();
+  const { levelId: levelSlug } = useParams();
   const [level, setLevel] = useState<AcademicLevel | null>(null);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [user, setUser] = useState<User | null>(null);
@@ -61,17 +63,22 @@ const SemesterView = () => {
   }, []);
 
   useEffect(() => {
-    if (levelId) {
+    if (levelSlug) {
       fetchLevel();
+    }
+  }, [levelSlug]);
+
+  useEffect(() => {
+    if (level) {
       fetchSemesters();
     }
-  }, [levelId]);
+  }, [level]);
 
   const fetchLevel = async () => {
     const { data, error } = await supabase
       .from("academic_levels")
       .select("*")
-      .eq("id", levelId)
+      .eq("slug", levelSlug)
       .maybeSingle();
 
     if (error) {
@@ -82,10 +89,12 @@ const SemesterView = () => {
   };
 
   const fetchSemesters = async () => {
+    if (!level?.id) return;
+    
     const { data, error } = await supabase
       .from("semesters")
       .select("*")
-      .eq("academic_level_id", levelId)
+      .eq("academic_level_id", level.id)
       .order("semester_number");
 
     if (error) {
@@ -212,7 +221,7 @@ const SemesterView = () => {
           {semesters.map((semester) => (
             <Card
               key={semester.id}
-              onClick={() => navigate(`/semester/${semester.id}/categories`)}
+              onClick={() => navigate(`/semester/${semester.slug}/categories`)}
               className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 bg-card/80 backdrop-blur-sm relative"
             >
               <CardHeader className="space-y-3">
