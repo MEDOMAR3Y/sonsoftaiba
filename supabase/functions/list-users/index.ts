@@ -47,13 +47,13 @@ serve(async (req) => {
 
     // Combine users with their roles and usernames
     const usersWithRoles = users.map(user => {
-      const userRole = roles?.find(r => r.user_id === user.id);
+      const userRoles = roles?.filter(r => r.user_id === user.id).map(r => r.role) || [];
       const userProfile = profiles?.find(p => p.id === user.id);
       return {
         id: user.id,
         email: user.email || "",
         created_at: user.created_at,
-        role: userRole?.role || null,
+        roles: userRoles,
         username: userProfile?.username || null
       };
     });

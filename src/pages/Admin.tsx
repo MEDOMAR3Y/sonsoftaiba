@@ -27,9 +27,10 @@ interface Category {
 interface UserWithRole {
   id: string;
   email: string;
+  username: string;
+  name?: string;
   created_at: string;
-  role: string | null;
-  username?: string;
+  roles: string[];
 }
 
 interface ActivityLog {
@@ -137,7 +138,13 @@ const Admin = () => {
         return;
       }
 
-      setUsers(data.users || []);
+      // Transform users to have roles as array
+      const usersWithRoles = (data.users || []).map((u: any) => ({
+        ...u,
+        roles: u.roles || []
+      }));
+      
+      setUsers(usersWithRoles);
     } catch (error) {
       console.error("Error fetching users:", error);
       toast.error("فشل في تحميل المستخدمين");
@@ -335,38 +342,35 @@ const Admin = () => {
     setLoading(false);
   };
 
-  const handleUpdateUserRole = async (userId: string, newRole: "admin" | "moderator" | "downloader" | "viewer") => {
-    if (!userId) return;
+  const handleToggleUserRole = async (
+    userId: string, 
+    role: "admin" | "moderator" | "downloader" | "viewer",
+    hasRole: boolean
+  ) => {
+    if (!userId || userId === user?.id) return;
 
     try {
-      // Check if user already has this role
-      const { data: existingRoles, error: existingError } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .eq("role", newRole);
+      if (hasRole) {
+        // Remove the role
+        const { error } = await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", userId)
+          .eq("role", role);
 
-      if (existingError) throw existingError;
+        if (error) throw error;
 
-      if (existingRoles && existingRoles.length > 0) {
-        toast.success("الدور محدث بالفعل لهذا المستخدم");
-        return;
+        toast.success("تم إزالة الدور بنجاح");
+      } else {
+        // Add the role
+        const { error } = await supabase
+          .from("user_roles")
+          .insert({ user_id: userId, role: role });
+
+        if (error) throw error;
+
+        toast.success("تم إضافة الدور بنجاح");
       }
-
-      // First, delete all existing roles for this user
-      const { error: deleteError } = await supabase
-        .from("user_roles")
-        .delete()
-        .eq("user_id", userId);
-
-      if (deleteError) throw deleteError;
-
-      // Then insert the new role
-      const { error: insertError } = await supabase
-        .from("user_roles")
-        .insert({ user_id: userId, role: newRole });
-
-      if (insertError) throw insertError;
       
       // Log the activity
       await supabase.from("activity_logs").insert({
@@ -376,15 +380,23 @@ const Admin = () => {
         target_type: "user",
         target_id: userId,
         target_name: users.find(u => u.id === userId)?.email || "مستخدم",
-        details: { new_role: newRole },
+        details: { role: role, action: hasRole ? "removed" : "added" },
       });
       
-      toast.success("تم تحديث الدور بنجاح");
       await Promise.all([fetchUsers(), fetchLogs()]);
     } catch (error: any) {
       toast.error("فشل في تحديث الدور: " + error.message);
       console.error(error);
     }
+  };
+
+  const getUserRoles = (userId: string): string[] => {
+    const userRoles = users.find(u => u.id === userId)?.roles || [];
+    return userRoles;
+  };
+
+  const hasRole = (userId: string, role: string): boolean => {
+    return getUserRoles(userId).includes(role);
   };
 
   const handleDeleteUser = async (userId: string, userEmail: string) => {
@@ -744,17 +756,29 @@ const Admin = () => {
                             })}
                           </td>
                           <td className="p-4">
-                            <select
-                              className="rounded-md border border-input bg-background px-3 py-1.5 text-sm min-w-[140px]"
-                              value={userItem.role || "downloader"}
-                              onChange={(e) => handleUpdateUserRole(userItem.id, e.target.value as "admin" | "moderator" | "downloader" | "viewer")}
-                              disabled={userItem.id === user?.id}
-                            >
-                              <option value="admin">مدير</option>
-                              <option value="moderator">محرر</option>
-                              <option value="downloader">محمل</option>
-                              <option value="viewer">مشاهد</option>
-                            </select>
+                            <div className="flex flex-col gap-2">
+                              {["admin", "moderator", "downloader", "viewer"].map((role) => (
+                                <label key={role} className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    className="rounded border-input"
+                                    checked={hasRole(userItem.id, role)}
+                                    onChange={() => handleToggleUserRole(
+                                      userItem.id, 
+                                      role as "admin" | "moderator" | "downloader" | "viewer",
+                                      hasRole(userItem.id, role)
+                                    )}
+                                    disabled={userItem.id === user?.id}
+                                  />
+                                  <span className="text-sm">
+                                    {role === "admin" && "مدير"}
+                                    {role === "moderator" && "محرر"}
+                                    {role === "downloader" && "محمل"}
+                                    {role === "viewer" && "مشاهد"}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
                           </td>
                           <td className="p-4">
                             <Button
