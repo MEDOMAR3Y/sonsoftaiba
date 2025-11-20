@@ -339,6 +339,20 @@ const Admin = () => {
     if (!userId) return;
 
     try {
+      // Check if user already has this role
+      const { data: existingRoles, error: existingError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", newRole);
+
+      if (existingError) throw existingError;
+
+      if (existingRoles && existingRoles.length > 0) {
+        toast.success("الدور محدث بالفعل لهذا المستخدم");
+        return;
+      }
+
       // First, delete all existing roles for this user
       const { error: deleteError } = await supabase
         .from("user_roles")
