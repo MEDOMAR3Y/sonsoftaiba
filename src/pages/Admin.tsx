@@ -32,6 +32,18 @@ interface UserWithRole {
   username?: string;
 }
 
+interface ActivityLog {
+  id: string;
+  user_id: string | null;
+  action_type: string;
+  target_type: string | null;
+  target_id: string | null;
+  target_name: string | null;
+  details: any;
+  created_at: string | null;
+  user_email?: string;
+}
+
 const getLevelName = (levelNumber: number) => {
   const arabicNumbers: { [key: number]: string } = {
     1: "الأول",
@@ -110,6 +122,7 @@ const Admin = () => {
     if (isAdmin === true) {
       fetchCategories();
       fetchUsers();
+      fetchLogs();
     }
   }, [isAdmin]);
 
@@ -128,6 +141,63 @@ const Admin = () => {
       console.error("Error fetching users:", error);
       toast.error("فشل في تحميل المستخدمين");
     }
+  };
+
+  const fetchLogs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("activity_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      const logsWithEmails = await Promise.all(
+        (data || []).map(async (log) => {
+          if (!log.user_id) return { ...log, user_email: "غير معروف" };
+
+          const { data: userData } = await supabase.auth.admin.getUserById(
+            log.user_id,
+          );
+
+          return {
+            ...log,
+            user_email: userData?.user?.email || "غير معروف",
+          };
+        }),
+      );
+
+      setLogs(logsWithEmails as ActivityLog[]);
+    } catch (error) {
+      console.error("Error fetching logs:", error);
+    }
+  };
+
+  const getActionLabel = (actionType: string) => {
+    const labels: Record<string, string> = {
+      upload: "رفع ملف",
+      download: "تحميل ملف",
+      delete: "حذف ملف",
+      create_category: "إنشاء فئة",
+      edit_category: "تعديل فئة",
+      delete_category: "حذف فئة",
+      change_role: "تغيير دور",
+      delete_user: "حذف مستخدم",
+    };
+    return labels[actionType] || actionType;
+  };
+
+  const formatLogDate = (dateString: string | null) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("ar-EG", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
   };
 
   const fetchCategories = async () => {
@@ -444,14 +514,6 @@ const Admin = () => {
               >
                 <Shield className="h-4 w-4" />
                 <span className="hidden sm:inline">لوحة التحكم</span>
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => navigate("/activity-logs")}
-                className="gap-2 hover:bg-accent/10"
-              >
-                <Activity className="h-4 w-4" />
-                <span className="hidden sm:inline">سجل النشاطات</span>
               </Button>
               <Button
                 variant="ghost"
