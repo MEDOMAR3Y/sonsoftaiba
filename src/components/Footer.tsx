@@ -3,9 +3,9 @@ import { MessageCircle } from "lucide-react";
 export const Footer = () => {
   return (
     <footer className="mt-auto border-t bg-card text-card-foreground">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center space-y-4">
-          <div className="flex items-center justify-center gap-2 text-sm sm:text-base">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="text-center space-y-2">
+          <div className="flex items-center justify-center gap-2 text-xs sm:text-sm">
             <span>© جميع الحقوق محفوظة ل</span>
             <span className="font-bold text-primary">
               SONS OF TAIBA
@@ -17,10 +17,10 @@ export const Footer = () => {
               href="https://chat.whatsapp.com/ISVxK2e63CU6qf6KbMZfhS?mode=wwt"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors"
             >
-              <MessageCircle className="h-4 w-4 text-primary" />
-              <span className="text-sm">للتواصل</span>
+              <MessageCircle className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs">للتواصل</span>
             </a>
           </div>
           
