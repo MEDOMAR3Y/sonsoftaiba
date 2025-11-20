@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Footer } from "@/components/Footer";
 import { User, Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
-import { Loader2, Trash2, FolderOpen, Upload, Plus, Home, Shield, LogOut, UserCircle, AlertCircle, Users, Edit } from "lucide-react";
+import { Loader2, Trash2, FolderOpen, Upload, Plus, Home, Shield, LogOut, UserCircle, AlertCircle, Users, Edit, Activity } from "lucide-react";
 import logoMain from "@/assets/logo-main.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -202,6 +202,13 @@ const Admin = () => {
 
     setLoading(true);
 
+    // Get category name for logging
+    const { data: category } = await supabase
+      .from("categories")
+      .select("name")
+      .eq("id", categoryId)
+      .single();
+
     // Delete all files in this category first
     const { data: files } = await supabase
       .from("files")
@@ -226,6 +233,15 @@ const Admin = () => {
     if (error) {
       toast.error("فشل في حذف الفئة");
     } else {
+      // Log the activity
+      await supabase.from("activity_logs").insert({
+        user_id: user?.id,
+        action_type: "delete_category",
+        target_type: "category",
+        target_id: categoryId,
+        target_name: category?.name,
+      });
+      
       toast.success("تم حذف الفئة بنجاح");
       fetchCategories();
     }
@@ -236,20 +252,24 @@ const Admin = () => {
     if (!userId) return;
 
     try {
-      // First, delete all existing roles for this user
-      const { error: deleteError } = await supabase
+      // Use upsert to update role (will replace if exists, insert if not)
+      const { error } = await supabase
         .from("user_roles")
-        .delete()
-        .eq("user_id", userId);
+        .upsert({ user_id: userId, role: newRole }, { 
+          onConflict: 'user_id',
+          ignoreDuplicates: false 
+        });
 
-      if (deleteError) throw deleteError;
-
-      // Then insert the new role
-      const { error: insertError } = await supabase
-        .from("user_roles")
-        .insert([{ user_id: userId, role: newRole }]);
-
-      if (insertError) throw insertError;
+      if (error) throw error;
+      
+      // Log the activity
+      await supabase.from("activity_logs").insert({
+        user_id: user?.id,
+        action_type: "change_role",
+        target_type: "user",
+        target_id: userId,
+        details: { new_role: newRole },
+      });
       
       toast.success("تم تحديث الدور بنجاح");
       fetchUsers();
@@ -276,6 +296,15 @@ const Admin = () => {
       });
 
       if (error) throw error;
+
+      // Log the activity
+      await supabase.from("activity_logs").insert({
+        user_id: user?.id,
+        action_type: "delete_user",
+        target_type: "user",
+        target_id: userId,
+        target_name: userEmail,
+      });
 
       toast.success("تم حذف المستخدم بنجاح");
       fetchUsers();
@@ -412,6 +441,15 @@ const Admin = () => {
               >
                 <Shield className="h-4 w-4" />
                 <span className="hidden sm:inline">لوحة التحكم</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/activity-logs")}
+                className="gap-2 hover:bg-accent/10"
+              >
+                <Activity className="h-4 w-4" />
+                <span className="hidden sm:inline">سجل النشاطات</span>
               </Button>
               <Button
                 variant="ghost"
