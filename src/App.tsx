@@ -33,7 +33,7 @@ const App = () => (
             <Route path="/department/:departmentId/levels" element={<LevelView />} />
             <Route path="/level/:levelId/semesters" element={<SemesterView />} />
             <Route path="/semester/:semesterId/categories" element={<SemesterCategories />} />
-            <Route path="/semester/:semesterId/:categoryId" element={<CategoryFiles />} />
+            <Route path="/category/:categoryId" element={<CategoryFiles />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
