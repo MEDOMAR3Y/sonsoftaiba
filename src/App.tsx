@@ -29,7 +29,6 @@ const App = () => (
             <Route path="/" element={<DepartmentView />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/admin" element={<Admin />} />
-            <Route path="/activity-logs" element={<AdminActivityLogs />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/department/:departmentId/levels" element={<LevelView />} />
             <Route path="/level/:levelId/semesters" element={<SemesterView />} />
