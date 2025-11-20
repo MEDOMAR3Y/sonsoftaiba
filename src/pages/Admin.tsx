@@ -342,44 +342,18 @@ const Admin = () => {
     setLoading(false);
   };
 
-  const handleToggleUserRole = async (
-    userId: string, 
-    role: "admin" | "moderator" | "downloader" | "viewer",
-    hasRole: boolean
-  ) => {
+  const handleRemoveUserRole = async (userId: string, role: "admin" | "moderator" | "downloader" | "viewer") => {
     if (!userId || userId === user?.id) return;
 
     try {
-      if (hasRole) {
-        // Remove the role
-        console.log("Removing role:", role, "from user:", userId);
-        const { error, data } = await supabase
-          .from("user_roles")
-          .delete()
-          .eq("user_id", userId)
-          .eq("role", role)
-          .select();
+      const { error } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId)
+        .eq("role", role);
 
-        console.log("Delete result:", { data, error });
+      if (error) throw error;
 
-        if (error) throw error;
-
-        toast.success("تم إزالة الدور بنجاح");
-      } else {
-        // Add the role
-        console.log("Adding role:", role, "to user:", userId);
-        const { error, data } = await supabase
-          .from("user_roles")
-          .insert({ user_id: userId, role: role })
-          .select();
-
-        console.log("Insert result:", { data, error });
-
-        if (error) throw error;
-
-        toast.success("تم إضافة الدور بنجاح");
-      }
-      
       // Log the activity
       await supabase.from("activity_logs").insert({
         user_id: user?.id,
@@ -388,18 +362,43 @@ const Admin = () => {
         target_type: "user",
         target_id: userId,
         target_name: users.find(u => u.id === userId)?.email || "مستخدم",
-        details: { role: role, action: hasRole ? "removed" : "added" },
+        details: { role: role, action: "removed" },
       });
-      
-      // Add a small delay to ensure database is updated
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      console.log("Fetching updated users...");
+
+      toast.success("تم إزالة الدور بنجاح");
       await Promise.all([fetchUsers(), fetchLogs()]);
-      console.log("Users updated");
     } catch (error: any) {
-      console.error("Error in handleToggleUserRole:", error);
-      toast.error("فشل في تحديث الدور: " + error.message);
+      console.error("Error removing role:", error);
+      toast.error("فشل في إزالة الدور: " + error.message);
+    }
+  };
+
+  const handleAddUserRole = async (userId: string, role: "admin" | "moderator" | "downloader" | "viewer") => {
+    if (!userId || userId === user?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .insert({ user_id: userId, role: role });
+
+      if (error) throw error;
+
+      // Log the activity
+      await supabase.from("activity_logs").insert({
+        user_id: user?.id,
+        user_email: user?.email,
+        action_type: "change_role",
+        target_type: "user",
+        target_id: userId,
+        target_name: users.find(u => u.id === userId)?.email || "مستخدم",
+        details: { role: role, action: "added" },
+      });
+
+      toast.success("تم إضافة الدور بنجاح");
+      await Promise.all([fetchUsers(), fetchLogs()]);
+    } catch (error: any) {
+      console.error("Error adding role:", error);
+      toast.error("فشل في إضافة الدور: " + error.message);
     }
   };
 
@@ -408,8 +407,20 @@ const Admin = () => {
     return userRoles;
   };
 
-  const hasRole = (userId: string, role: string): boolean => {
-    return getUserRoles(userId).includes(role);
+  const getAvailableRoles = (userId: string): string[] => {
+    const currentRoles = getUserRoles(userId);
+    const allRoles = ["admin", "moderator", "downloader", "viewer"];
+    return allRoles.filter(role => !currentRoles.includes(role));
+  };
+
+  const getRoleLabel = (role: string): string => {
+    const labels: Record<string, string> = {
+      admin: "مدير",
+      moderator: "محرر",
+      downloader: "محمل",
+      viewer: "مشاهد"
+    };
+    return labels[role] || role;
   };
 
   const handleDeleteUser = async (userId: string, userEmail: string) => {
@@ -765,34 +776,54 @@ const Admin = () => {
 
                       {/* Details Grid */}
                       <div className="space-y-3 bg-muted/30 rounded-md p-4">
-                        {/* Roles Section */}
+                        {/* Current Roles Section */}
                         <div>
                           <span className="text-sm font-semibold text-muted-foreground block mb-2">
-                            👤 الصلاحيات:
+                            👤 الصلاحيات الحالية:
                           </span>
-                          <div className="flex flex-col gap-2">
-                            {["admin", "moderator", "downloader", "viewer"].map((role) => (
-                              <label key={role} className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  className="rounded border-input"
-                                  checked={hasRole(userItem.id, role)}
-                                  onChange={() => handleToggleUserRole(
-                                    userItem.id, 
-                                    role as "admin" | "moderator" | "downloader" | "viewer",
-                                    hasRole(userItem.id, role)
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {getUserRoles(userItem.id).length === 0 ? (
+                              <span className="text-sm text-muted-foreground">لا توجد صلاحيات</span>
+                            ) : (
+                              getUserRoles(userItem.id).map((role) => (
+                                <div
+                                  key={role}
+                                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-primary/10 text-primary border border-primary/20"
+                                >
+                                  <span>{getRoleLabel(role)}</span>
+                                  {userItem.id !== user?.id && (
+                                    <button
+                                      onClick={() => handleRemoveUserRole(userItem.id, role as "admin" | "moderator" | "downloader" | "viewer")}
+                                      className="hover:bg-destructive/20 rounded-full p-0.5 transition-colors"
+                                      disabled={loading}
+                                    >
+                                      <Trash2 className="h-3 w-3 text-destructive" />
+                                    </button>
                                   )}
-                                  disabled={userItem.id === user?.id}
-                                />
-                                <span className="text-sm">
-                                  {role === "admin" && "مدير"}
-                                  {role === "moderator" && "محرر"}
-                                  {role === "downloader" && "محمل"}
-                                  {role === "viewer" && "مشاهد"}
-                                </span>
-                              </label>
-                            ))}
+                                </div>
+                              ))
+                            )}
                           </div>
+
+                          {/* Add Role Section */}
+                          {userItem.id !== user?.id && getAvailableRoles(userItem.id).length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              <span className="text-sm text-muted-foreground">إضافة صلاحية:</span>
+                              {getAvailableRoles(userItem.id).map((role) => (
+                                <Button
+                                  key={role}
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleAddUserRole(userItem.id, role as "admin" | "moderator" | "downloader" | "viewer")}
+                                  disabled={loading}
+                                  className="h-7 text-xs gap-1"
+                                >
+                                  <Plus className="h-3 w-3" />
+                                  {getRoleLabel(role)}
+                                </Button>
+                              ))}
+                            </div>
+                          )}
                         </div>
 
                         {/* Delete Button */}
