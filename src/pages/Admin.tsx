@@ -35,17 +35,6 @@ interface UserWithRole {
   roles: string[];
 }
 
-interface ActivityLog {
-  id: string;
-  user_id: string | null;
-  action_type: string;
-  target_type: string | null;
-  target_id: string | null;
-  target_name: string | null;
-  details: any;
-  created_at: string | null;
-  user_email?: string;
-}
 
 const getLevelName = (levelNumber: number) => {
   const arabicNumbers: { [key: number]: string } = {
@@ -68,7 +57,7 @@ const Admin = () => {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [users, setUsers] = useState<UserWithRole[]>([]);
-  const [logs, setLogs] = useState<ActivityLog[]>([]);
+  
   const [categoryName, setCategoryName] = useState("");
   const [categoryDescription, setCategoryDescription] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
@@ -128,7 +117,6 @@ const Admin = () => {
     if (isAdmin === true) {
       fetchCategories();
       fetchUsers();
-      fetchLogs();
     }
   }, [isAdmin]);
 
@@ -155,77 +143,6 @@ const Admin = () => {
     }
   };
 
-  const fetchLogs = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("activity_logs")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-
-      setLogs((data || []) as ActivityLog[]);
-    } catch (error) {
-      console.error("Error fetching logs:", error);
-    }
-  };
-
-  const getActionLabel = (actionType: string) => {
-    const labels: Record<string, string> = {
-      upload: "رفع ملف",
-      download: "تحميل ملف",
-      delete: "حذف ملف",
-      create_category: "إنشاء فئة",
-      edit_category: "تعديل فئة",
-      delete_category: "حذف فئة",
-      change_role: "تغيير دور",
-      delete_user: "حذف مستخدم",
-    };
-    return labels[actionType] || actionType;
-  };
-
-  const getActionIcon = (actionType: string) => {
-    switch (actionType) {
-      case "upload":
-        return "📤";
-      case "download":
-        return "📥";
-      case "delete":
-      case "delete_category":
-      case "delete_user":
-        return "🗑️";
-      case "create_category":
-        return "➕";
-      case "edit_category":
-        return "✏️";
-      case "change_role":
-        return "👤";
-      default:
-        return "📝";
-    }
-  };
-
-  const getTargetTypeLabel = (targetType: string | null) => {
-    const labels: Record<string, string> = {
-      file: "ملف",
-      category: "فئة",
-      user: "مستخدم",
-      role: "دور",
-    };
-    return targetType ? labels[targetType] || targetType : "";
-  };
-
-  const formatLogDate = (dateString: string | null) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("ar-EG", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
-  };
 
   const fetchCategories = async () => {
     const { data, error } = await supabase
@@ -371,44 +288,10 @@ const Admin = () => {
 
         toast.success("تم حذف المستخدم بنجاح");
         fetchUsers();
-        fetchLogs();
       }
     }
   };
 
-  const handleDeleteLog = async (logId: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا السجل؟')) {
-      const { error } = await supabase
-        .from('activity_logs')
-        .delete()
-        .eq('id', logId);
-
-      if (error) {
-        console.error('Error deleting log:', error);
-        toast.error("حدث خطأ أثناء حذف السجل");
-      } else {
-        toast.success("تم حذف السجل بنجاح");
-        fetchLogs();
-      }
-    }
-  };
-
-  const handleDeleteAllLogs = async () => {
-    if (window.confirm('هل أنت متأكد من حذف جميع السجلات؟ هذا الإجراء لا يمكن التراجع عنه!')) {
-      const { error } = await supabase
-        .from('activity_logs')
-        .delete()
-        .not('id', 'is', null); // Delete all rows
-
-      if (error) {
-        console.error('Error deleting all logs:', error);
-        toast.error("حدث خطأ أثناء حذف السجلات");
-      } else {
-        toast.success("تم حذف جميع السجلات بنجاح");
-        fetchLogs();
-      }
-    }
-  };
 
   const handleUploadFile = async () => {
     if (!selectedFiles || selectedFiles.length === 0 || !selectedCategoryId) {
@@ -749,129 +632,6 @@ const Admin = () => {
             </div>
           )}
 
-          {/* Role Management Dialog */}
-        </div>
-
-        {/* Activity Logs */}
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <Activity className="h-6 w-6" />
-            سجل النشاطات
-          </h2>
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>جميع النشاطات</CardTitle>
-                  <CardDescription className="mt-1.5">
-                    سجل شامل لكل العمليات على المنصة
-                  </CardDescription>
-                </div>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleDeleteAllLogs}
-                  className="gap-2"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  حذف الكل
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {logs.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  لا توجد نشاطات مسجلة بعد
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {logs.map((log) => (
-                    <div
-                      key={log.id}
-                      className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
-                    >
-                      {/* Header with action, date, and delete button */}
-                      <div className="flex items-start justify-between gap-3 mb-3">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <span className="text-2xl flex-shrink-0">{getActionIcon(log.action_type)}</span>
-                          <div className="font-bold text-lg">
-                            {getActionLabel(log.action_type)}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <div className="text-xs text-muted-foreground whitespace-nowrap">
-                            {formatLogDate(log.created_at)}
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteLog(log.id)}
-                            className="h-8 w-8 p-0 hover:bg-destructive/10"
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Details Grid */}
-                      <div className="space-y-2 bg-muted/30 rounded-md p-3">
-                        {/* Who did it */}
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                          <span className="text-sm font-semibold text-muted-foreground min-w-[80px]">
-                            👤 المستخدم:
-                          </span>
-                          <span className="text-sm font-medium break-all">
-                            {log.user_email || "غير معروف"}
-                          </span>
-                        </div>
-
-                        {/* What was targeted */}
-                        {log.target_type && (
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                            <span className="text-sm font-semibold text-muted-foreground min-w-[80px]">
-                              🎯 النوع:
-                            </span>
-                            <span className="text-sm font-medium">
-                              {getTargetTypeLabel(log.target_type)}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Target name */}
-                        {log.target_name && (
-                          <div className="flex flex-col sm:flex-row sm:items-start gap-1">
-                            <span className="text-sm font-semibold text-muted-foreground min-w-[80px]">
-                              📋 الاسم:
-                            </span>
-                            <span className="text-sm font-medium break-words flex-1">
-                              {log.target_name}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Additional details */}
-                        {log.details && Object.keys(log.details).length > 0 && (
-                          <div className="flex flex-col gap-1 pt-2 border-t border-border/50">
-                            <span className="text-sm font-semibold text-muted-foreground">
-                              ℹ️ تفاصيل إضافية:
-                            </span>
-                            <div className="text-xs bg-background/50 rounded p-2 break-words">
-                              {Object.entries(log.details).map(([key, value]) => (
-                                <div key={key} className="flex gap-2">
-                                  <span className="font-semibold">{key}:</span>
-                                  <span>{String(value)}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
       </div>
       <Footer />
