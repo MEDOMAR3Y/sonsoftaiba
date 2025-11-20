@@ -1,7 +1,19 @@
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
+import logoLight from "@/assets/logo-light.png";
+import logoDark from "@/assets/logo-dark.png";
 
 export const Header = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const currentLogo = mounted && theme === "dark" ? logoLight : logoDark;
 
   return (
     <header className="w-full bg-card/95 backdrop-blur-md border-b border-border/50 sticky top-0 z-50 shadow-sm">
@@ -11,10 +23,11 @@ export const Header = () => {
             onClick={() => navigate("/")}
             className="group relative transition-all duration-300 hover:scale-105"
           >
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent relative">
-              SONS OF TAIBA
-              <span className="absolute inset-0 bg-gradient-to-r from-primary via-primary-glow to-primary opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></span>
-            </h1>
+            <img 
+              src={currentLogo} 
+              alt="Sons of Taiba" 
+              className="h-12 w-auto transition-opacity duration-300 group-hover:opacity-90"
+            />
           </button>
         </div>
       </div>
