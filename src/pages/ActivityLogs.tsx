@@ -29,12 +29,15 @@ const ActivityLogs = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    const initAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
       if (!user) {
         navigate("/auth");
       }
-    });
+    };
+
+    initAuth();
 
     const {
       data: { subscription },
