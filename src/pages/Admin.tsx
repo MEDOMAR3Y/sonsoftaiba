@@ -751,7 +751,7 @@ const Admin = () => {
               {users.map((userItem) => (
                 <Card key={userItem.id}>
                   <CardContent className="p-6">
-                    <div className="border rounded-lg p-4 hover:bg-accent/50 transition-colors">
+                    <div className="border rounded-lg p-4 cursor-default">
                       {/* Header with email */}
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="flex-1 min-w-0">
