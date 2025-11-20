@@ -149,8 +149,7 @@ const Admin = () => {
       const { data, error } = await supabase
         .from("activity_logs")
         .select("*")
-        .order("created_at", { ascending: false })
-        .limit(50);
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
@@ -751,7 +750,7 @@ const Admin = () => {
           </h2>
           <Card>
             <CardHeader>
-              <CardTitle>آخر 50 نشاط</CardTitle>
+              <CardTitle>جميع النشاطات</CardTitle>
             </CardHeader>
             <CardContent>
               {logs.length === 0 ? (
