@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Loader2, Trash2, FolderOpen, Upload, Plus, Home, Shield, LogOut, UserCircle, AlertCircle, Users, Edit, Activity } from "lucide-react";
 import logoMain from "@/assets/logo-main.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { RoleManagementDialog } from "@/components/RoleManagementDialog";
 
 interface Category {
   id: string;
@@ -73,6 +74,10 @@ const Admin = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
+  
+  // Role management dialog state
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [selectedUserForRoles, setSelectedUserForRoles] = useState<UserWithRole | null>(null);
 
   // Check authentication and admin status
   useEffect(() => {
@@ -340,93 +345,6 @@ const Admin = () => {
       fetchCategories();
     }
     setLoading(false);
-  };
-
-  const handleRemoveUserRole = async (userId: string, role: "admin" | "moderator" | "downloader" | "viewer") => {
-    if (!userId || userId === user?.id) return;
-
-    try {
-      const { error } = await supabase
-        .from("user_roles")
-        .delete()
-        .eq("user_id", userId)
-        .eq("role", role);
-
-      if (error) throw error;
-
-      // Log the activity
-      await supabase.from("activity_logs").insert({
-        user_id: user?.id,
-        user_email: user?.email,
-        action_type: "change_role",
-        target_type: "user",
-        target_id: userId,
-        target_name: users.find(u => u.id === userId)?.email || "مستخدم",
-        details: { role: role, action: "removed" },
-      });
-
-      toast.success("تم إزالة الدور بنجاح");
-      
-      // Wait a bit for the database to update
-      await new Promise(resolve => setTimeout(resolve, 300));
-      await Promise.all([fetchUsers(), fetchLogs()]);
-    } catch (error: any) {
-      console.error("Error removing role:", error);
-      toast.error("فشل في إزالة الدور: " + error.message);
-    }
-  };
-
-  const handleAddUserRole = async (userId: string, role: "admin" | "moderator" | "downloader" | "viewer") => {
-    if (!userId || userId === user?.id) return;
-
-    try {
-      const { error } = await supabase
-        .from("user_roles")
-        .insert({ user_id: userId, role: role });
-
-      if (error) throw error;
-
-      // Log the activity
-      await supabase.from("activity_logs").insert({
-        user_id: user?.id,
-        user_email: user?.email,
-        action_type: "change_role",
-        target_type: "user",
-        target_id: userId,
-        target_name: users.find(u => u.id === userId)?.email || "مستخدم",
-        details: { role: role, action: "added" },
-      });
-
-      toast.success("تم إضافة الدور بنجاح");
-      
-      // Wait a bit for the database to update
-      await new Promise(resolve => setTimeout(resolve, 300));
-      await Promise.all([fetchUsers(), fetchLogs()]);
-    } catch (error: any) {
-      console.error("Error adding role:", error);
-      toast.error("فشل في إضافة الدور: " + error.message);
-    }
-  };
-
-  const getUserRoles = (userId: string): string[] => {
-    const userRoles = users.find(u => u.id === userId)?.roles || [];
-    return userRoles;
-  };
-
-  const getAvailableRoles = (userId: string): string[] => {
-    const currentRoles = getUserRoles(userId);
-    const allRoles = ["admin", "moderator", "downloader", "viewer"];
-    return allRoles.filter(role => !currentRoles.includes(role));
-  };
-
-  const getRoleLabel = (role: string): string => {
-    const labels: Record<string, string> = {
-      admin: "مدير",
-      moderator: "محرر",
-      downloader: "محمل",
-      viewer: "مشاهد"
-    };
-    return labels[role] || role;
   };
 
   const handleDeleteUser = async (userId: string, userEmail: string) => {
@@ -782,88 +700,53 @@ const Admin = () => {
                         })}
                       </div>
 
-                      {/* Details Grid */}
-                      <div className="space-y-3 bg-muted/30 rounded-md p-4">
-                        {/* Current Roles Section */}
-                        <div>
-                          <span className="text-sm font-semibold text-muted-foreground block mb-2">
-                            👤 الصلاحيات الحالية:
-                          </span>
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {getUserRoles(userItem.id).length === 0 ? (
-                              <span className="text-sm text-muted-foreground">لا توجد صلاحيات</span>
-                            ) : (
-                              getUserRoles(userItem.id).map((role) => (
-                                <div
-                                  key={role}
-                                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-primary/10 text-primary border border-primary/20"
-                                >
-                                  <span>{getRoleLabel(role)}</span>
-                                  {userItem.id !== user?.id && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        e.preventDefault();
-                                        handleRemoveUserRole(userItem.id, role as "admin" | "moderator" | "downloader" | "viewer");
-                                      }}
-                                      className="hover:bg-destructive/20 rounded-full p-0.5 transition-colors"
-                                      disabled={loading}
-                                      type="button"
-                                    >
-                                      <Trash2 className="h-3 w-3 text-destructive" />
-                                    </button>
-                                  )}
-                                </div>
-                              ))
-                            )}
-                          </div>
-
-                          {/* Add Role Section */}
-                          {userItem.id !== user?.id && getAvailableRoles(userItem.id).length > 0 && (
-                            <div className="flex flex-wrap gap-2">
-                              <span className="text-sm text-muted-foreground">إضافة صلاحية:</span>
-                              {getAvailableRoles(userItem.id).map((role) => (
-                                <Button
-                                  key={role}
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    handleAddUserRole(userItem.id, role as "admin" | "moderator" | "downloader" | "viewer");
-                                  }}
-                                  disabled={loading}
-                                  className="h-7 text-xs gap-1"
-                                  type="button"
-                                >
-                                  <Plus className="h-3 w-3" />
-                                  {getRoleLabel(role)}
-                                </Button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Delete Button */}
-                        <div className="pt-2 border-t border-border/50">
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDeleteUser(userItem.id, userItem.email)}
-                            disabled={userItem.id === user?.id || loading}
-                            className="w-full gap-2"
-                            type="button"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            حذف المستخدم
-                          </Button>
-                        </div>
+                      {/* Role Management & Delete Buttons */}
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedUserForRoles(userItem);
+                            setRoleDialogOpen(true);
+                          }}
+                          className="flex-1 gap-2"
+                        >
+                          <Shield className="h-4 w-4" />
+                          إدارة الأدوار
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteUser(userItem.id, userItem.email)}
+                          disabled={userItem.id === user?.id || loading}
+                          className="gap-2"
+                          type="button"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          حذف
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
+          )}
+
+          {/* Role Management Dialog */}
+          {selectedUserForRoles && (
+            <RoleManagementDialog
+              open={roleDialogOpen}
+              onOpenChange={setRoleDialogOpen}
+              userId={selectedUserForRoles.id}
+              userEmail={selectedUserForRoles.email}
+              currentRoles={selectedUserForRoles.roles}
+              isCurrentUser={selectedUserForRoles.id === user?.id}
+              onRolesUpdated={() => {
+                fetchUsers();
+                fetchLogs();
+              }}
+            />
           )}
         </div>
 
