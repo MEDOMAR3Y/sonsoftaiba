@@ -41,7 +41,7 @@ interface ParentCategory {
 }
 
 const CategoryFiles = () => {
-  const { categoryId: categorySlug } = useParams();
+  const { semesterId: semesterSlug, categoryId: categorySlug } = useParams();
   const navigate = useNavigate();
   const [category, setCategory] = useState<Category | null>(null);
   const [files, setFiles] = useState<File[]>([]);

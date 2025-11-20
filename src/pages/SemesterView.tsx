@@ -221,7 +221,7 @@ const SemesterView = () => {
           {semesters.map((semester) => (
             <Card
               key={semester.id}
-              onClick={() => navigate(`/semester/${semester.slug}/categories`)}
+              onClick={() => navigate(`/${semester.slug}/categories`)}
               className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 bg-card/80 backdrop-blur-sm relative"
             >
               <CardHeader className="space-y-3">
