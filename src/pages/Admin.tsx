@@ -398,7 +398,7 @@ const Admin = () => {
       const { error } = await supabase
         .from('activity_logs')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+        .not('id', 'is', null); // Delete all rows
 
       if (error) {
         console.error('Error deleting all logs:', error);
