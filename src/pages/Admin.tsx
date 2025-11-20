@@ -740,7 +740,7 @@ const Admin = () => {
               onOpenChange={setRoleDialogOpen}
               userId={selectedUserForRoles.id}
               userEmail={selectedUserForRoles.email}
-              currentRoles={selectedUserForRoles.roles}
+              currentRoles={users.find(u => u.id === selectedUserForRoles.id)?.roles || []}
               isCurrentUser={selectedUserForRoles.id === user?.id}
               onRolesUpdated={() => {
                 fetchUsers();
