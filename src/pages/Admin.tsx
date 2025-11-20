@@ -65,6 +65,7 @@ const Admin = () => {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [users, setUsers] = useState<UserWithRole[]>([]);
+  const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [categoryName, setCategoryName] = useState("");
   const [categoryDescription, setCategoryDescription] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
