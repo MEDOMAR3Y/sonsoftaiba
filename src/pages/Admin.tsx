@@ -232,7 +232,7 @@ const Admin = () => {
     setLoading(false);
   };
 
-  const handleUpdateUserRole = async (userId: string, newRole: "admin" | "moderator" | "viewer") => {
+  const handleUpdateUserRole = async (userId: string, newRole: "admin" | "moderator" | "downloader" | "viewer") => {
     if (!userId) return;
 
     try {
@@ -612,12 +612,13 @@ const Admin = () => {
                           <td className="p-4">
                             <select
                               className="rounded-md border border-input bg-background px-3 py-1.5 text-sm min-w-[140px]"
-                              value={userItem.role || "viewer"}
-                              onChange={(e) => handleUpdateUserRole(userItem.id, e.target.value as "admin" | "moderator" | "viewer")}
+                              value={userItem.role || "downloader"}
+                              onChange={(e) => handleUpdateUserRole(userItem.id, e.target.value as "admin" | "moderator" | "downloader" | "viewer")}
                               disabled={userItem.id === user?.id}
                             >
                               <option value="admin">مدير</option>
-                              <option value="moderator">معدل</option>
+                              <option value="moderator">محرر</option>
+                              <option value="downloader">محمل</option>
                               <option value="viewer">مشاهد</option>
                             </select>
                           </td>
