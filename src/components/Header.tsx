@@ -13,7 +13,7 @@ export const Header = () => {
     setMounted(true);
   }, []);
 
-  const currentLogo = mounted && theme === "dark" ? logoLight : logoDark;
+  const currentLogo = mounted && theme === "dark" ? logoDark : logoLight;
 
   return (
     <header className="w-full bg-card/95 backdrop-blur-md border-b border-border/50 sticky top-0 z-50 shadow-sm">
