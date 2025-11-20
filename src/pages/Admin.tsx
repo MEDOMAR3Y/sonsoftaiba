@@ -153,22 +153,7 @@ const Admin = () => {
 
       if (error) throw error;
 
-      const logsWithEmails = await Promise.all(
-        (data || []).map(async (log) => {
-          if (!log.user_id) return { ...log, user_email: "غير معروف" };
-
-          const { data: userData } = await supabase.auth.admin.getUserById(
-            log.user_id,
-          );
-
-          return {
-            ...log,
-            user_email: userData?.user?.email || "غير معروف",
-          };
-        }),
-      );
-
-      setLogs(logsWithEmails as ActivityLog[]);
+      setLogs((data || []) as ActivityLog[]);
     } catch (error) {
       console.error("Error fetching logs:", error);
     }
@@ -337,6 +322,7 @@ const Admin = () => {
       // Log the activity
       await supabase.from("activity_logs").insert({
         user_id: user?.id,
+        user_email: user?.email,
         action_type: "delete_category",
         target_type: "category",
         target_id: categoryId,
@@ -371,14 +357,16 @@ const Admin = () => {
       // Log the activity
       await supabase.from("activity_logs").insert({
         user_id: user?.id,
+        user_email: user?.email,
         action_type: "change_role",
         target_type: "user",
         target_id: userId,
+        target_name: users.find(u => u.id === userId)?.email || "مستخدم",
         details: { new_role: newRole },
       });
       
       toast.success("تم تحديث الدور بنجاح");
-      fetchUsers();
+      await Promise.all([fetchUsers(), fetchLogs()]);
     } catch (error: any) {
       toast.error("فشل في تحديث الدور: " + error.message);
       console.error(error);
@@ -406,6 +394,7 @@ const Admin = () => {
       // Log the activity
       await supabase.from("activity_logs").insert({
         user_id: user?.id,
+        user_email: user?.email,
         action_type: "delete_user",
         target_type: "user",
         target_id: userId,
@@ -413,7 +402,7 @@ const Admin = () => {
       });
 
       toast.success("تم حذف المستخدم بنجاح");
-      fetchUsers();
+      await Promise.all([fetchUsers(), fetchLogs()]);
     } catch (error: any) {
       toast.error("فشل في حذف المستخدم");
       console.error(error);
