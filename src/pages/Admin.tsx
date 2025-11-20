@@ -752,26 +752,28 @@ const Admin = () => {
                 <Card key={userItem.id}>
                   <CardContent className="p-6">
                     <div className="border rounded-lg p-4 hover:bg-accent/50 transition-colors">
-                      {/* Header with email and date */}
-                      <div className="flex items-start justify-between gap-3 mb-4">
+                      {/* Header with email */}
+                      <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="flex-1 min-w-0">
-                          <div className="font-bold text-lg flex items-center gap-2">
+                          <div className="font-bold text-lg break-words">
                             {userItem.email}
                             {userItem.id === user?.id && (
-                              <span className="text-xs text-muted-foreground">(أنت)</span>
+                              <span className="text-xs text-muted-foreground mr-2">(أنت)</span>
                             )}
                           </div>
                           <div className="text-sm text-muted-foreground mt-1">
                             {userItem.username || 'لا يوجد اسم مستخدم'}
                           </div>
                         </div>
-                        <div className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
-                          {new Date(userItem.created_at).toLocaleDateString('ar-EG', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </div>
+                      </div>
+                      
+                      {/* Date */}
+                      <div className="text-xs text-muted-foreground mb-4">
+                        📅 تاريخ الإنشاء: {new Date(userItem.created_at).toLocaleDateString('ar-EG', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
                       </div>
 
                       {/* Details Grid */}
@@ -793,9 +795,14 @@ const Admin = () => {
                                   <span>{getRoleLabel(role)}</span>
                                   {userItem.id !== user?.id && (
                                     <button
-                                      onClick={() => handleRemoveUserRole(userItem.id, role as "admin" | "moderator" | "downloader" | "viewer")}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        handleRemoveUserRole(userItem.id, role as "admin" | "moderator" | "downloader" | "viewer");
+                                      }}
                                       className="hover:bg-destructive/20 rounded-full p-0.5 transition-colors"
                                       disabled={loading}
+                                      type="button"
                                     >
                                       <Trash2 className="h-3 w-3 text-destructive" />
                                     </button>
@@ -814,9 +821,14 @@ const Admin = () => {
                                   key={role}
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => handleAddUserRole(userItem.id, role as "admin" | "moderator" | "downloader" | "viewer")}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    handleAddUserRole(userItem.id, role as "admin" | "moderator" | "downloader" | "viewer");
+                                  }}
                                   disabled={loading}
                                   className="h-7 text-xs gap-1"
+                                  type="button"
                                 >
                                   <Plus className="h-3 w-3" />
                                   {getRoleLabel(role)}
@@ -834,6 +846,7 @@ const Admin = () => {
                             onClick={() => handleDeleteUser(userItem.id, userItem.email)}
                             disabled={userItem.id === user?.id || loading}
                             className="w-full gap-2"
+                            type="button"
                           >
                             <Trash2 className="h-4 w-4" />
                             حذف المستخدم
