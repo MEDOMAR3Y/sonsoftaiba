@@ -13,7 +13,7 @@ import DepartmentView from "./pages/DepartmentView";
 import LevelView from "./pages/LevelView";
 import SemesterView from "./pages/SemesterView";
 import SemesterCategories from "./pages/SemesterCategories";
-import ActivityLogs from "./pages/ActivityLogs";
+import AdminActivityLogs from "./pages/AdminActivityLogs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
