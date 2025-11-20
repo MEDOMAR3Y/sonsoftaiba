@@ -236,34 +236,25 @@ const Admin = () => {
     if (!userId) return;
 
     try {
-      // Check if user already has a role
-      const { data: existingRole } = await supabase
+      // First, delete all existing roles for this user
+      const { error: deleteError } = await supabase
         .from("user_roles")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle();
+        .delete()
+        .eq("user_id", userId);
 
-      if (existingRole) {
-        // Update existing role
-        const { error } = await supabase
-          .from("user_roles")
-          .update({ role: newRole })
-          .eq("user_id", userId);
+      if (deleteError) throw deleteError;
 
-        if (error) throw error;
-      } else {
-        // Insert new role
-        const { error } = await supabase
-          .from("user_roles")
-          .insert([{ user_id: userId, role: newRole }]);
+      // Then insert the new role
+      const { error: insertError } = await supabase
+        .from("user_roles")
+        .insert([{ user_id: userId, role: newRole }]);
 
-        if (error) throw error;
-      }
+      if (insertError) throw insertError;
       
       toast.success("تم تحديث الدور بنجاح");
       fetchUsers();
     } catch (error: any) {
-      toast.error("فشل في تحديث الدور");
+      toast.error("فشل في تحديث الدور: " + error.message);
       console.error(error);
     }
   };
