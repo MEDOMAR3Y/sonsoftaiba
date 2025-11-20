@@ -21,6 +21,7 @@ export type Database = {
           id: string
           level_number: number
           name: string
+          slug: string
         }
         Insert: {
           created_at?: string
@@ -28,6 +29,7 @@ export type Database = {
           id?: string
           level_number: number
           name: string
+          slug: string
         }
         Update: {
           created_at?: string
@@ -35,6 +37,7 @@ export type Database = {
           id?: string
           level_number?: number
           name?: string
+          slug?: string
         }
         Relationships: [
           {
@@ -53,6 +56,7 @@ export type Database = {
           id: string
           name: string
           semester_id: string | null
+          slug: string | null
           updated_at: string
         }
         Insert: {
@@ -61,6 +65,7 @@ export type Database = {
           id?: string
           name: string
           semester_id?: string | null
+          slug?: string | null
           updated_at?: string
         }
         Update: {
@@ -69,6 +74,7 @@ export type Database = {
           id?: string
           name?: string
           semester_id?: string | null
+          slug?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -87,6 +93,7 @@ export type Database = {
           has_preparatory: boolean | null
           id: string
           name: string
+          slug: string
           years_count: number
         }
         Insert: {
@@ -94,6 +101,7 @@ export type Database = {
           has_preparatory?: boolean | null
           id?: string
           name: string
+          slug: string
           years_count: number
         }
         Update: {
@@ -101,6 +109,7 @@ export type Database = {
           has_preparatory?: boolean | null
           id?: string
           name?: string
+          slug?: string
           years_count?: number
         }
         Relationships: []
@@ -171,6 +180,7 @@ export type Database = {
           id: string
           name: string
           semester_number: number
+          slug: string
         }
         Insert: {
           academic_level_id: string
@@ -178,6 +188,7 @@ export type Database = {
           id?: string
           name: string
           semester_number: number
+          slug: string
         }
         Update: {
           academic_level_id?: string
@@ -185,6 +196,7 @@ export type Database = {
           id?: string
           name?: string
           semester_number?: number
+          slug?: string
         }
         Relationships: [
           {
@@ -222,6 +234,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_slug: { Args: { text_input: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
