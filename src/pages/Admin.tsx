@@ -742,6 +742,54 @@ const Admin = () => {
             </Card>
           )}
         </div>
+
+        {/* Activity Logs */}
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+            <Activity className="h-6 w-6" />
+            سجل النشاطات
+          </h2>
+          <Card>
+            <CardHeader>
+              <CardTitle>آخر 50 نشاط</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {logs.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  لا توجد نشاطات مسجلة بعد
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {logs.map((log) => (
+                    <div
+                      key={log.id}
+                      className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
+                    >
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-base">
+                            {getActionLabel(log.action_type)}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            المستخدم: {log.user_email}
+                          </div>
+                          {log.target_name && (
+                            <div className="text-sm text-muted-foreground truncate">
+                              الهدف: {log.target_name}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground whitespace-nowrap">
+                          {formatLogDate(log.created_at)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
       <Footer />
     </div>
