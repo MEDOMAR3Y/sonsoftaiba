@@ -358,7 +358,7 @@ const SemesterCategories = () => {
                 name={category.name}
                 description={category.description}
                 fileCount={fileCounts[category.id] || 0}
-                onClick={() => navigate(`/${semester.slug}/categories/${category.slug}`)}
+                onClick={() => navigate(`/${semester.slug}/categories/${category.slug || category.id}`)}
               />
             ))}
           </div>
