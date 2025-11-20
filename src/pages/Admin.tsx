@@ -352,20 +352,28 @@ const Admin = () => {
     try {
       if (hasRole) {
         // Remove the role
-        const { error } = await supabase
+        console.log("Removing role:", role, "from user:", userId);
+        const { error, data } = await supabase
           .from("user_roles")
           .delete()
           .eq("user_id", userId)
-          .eq("role", role);
+          .eq("role", role)
+          .select();
+
+        console.log("Delete result:", { data, error });
 
         if (error) throw error;
 
         toast.success("تم إزالة الدور بنجاح");
       } else {
         // Add the role
-        const { error } = await supabase
+        console.log("Adding role:", role, "to user:", userId);
+        const { error, data } = await supabase
           .from("user_roles")
-          .insert({ user_id: userId, role: role });
+          .insert({ user_id: userId, role: role })
+          .select();
+
+        console.log("Insert result:", { data, error });
 
         if (error) throw error;
 
@@ -383,10 +391,15 @@ const Admin = () => {
         details: { role: role, action: hasRole ? "removed" : "added" },
       });
       
+      // Add a small delay to ensure database is updated
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      console.log("Fetching updated users...");
       await Promise.all([fetchUsers(), fetchLogs()]);
+      console.log("Users updated");
     } catch (error: any) {
+      console.error("Error in handleToggleUserRole:", error);
       toast.error("فشل في تحديث الدور: " + error.message);
-      console.error(error);
     }
   };
 
