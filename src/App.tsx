@@ -32,8 +32,8 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/department/:departmentId/levels" element={<LevelView />} />
             <Route path="/level/:levelId/semesters" element={<SemesterView />} />
-            <Route path="/semester/:semesterId/categories" element={<SemesterCategories />} />
-            <Route path="/category/:categoryId" element={<CategoryFiles />} />
+            <Route path="/:semesterId/categories" element={<SemesterCategories />} />
+            <Route path="/:semesterId/categories/:categoryId" element={<CategoryFiles />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
