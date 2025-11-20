@@ -252,15 +252,20 @@ const Admin = () => {
     if (!userId) return;
 
     try {
-      // Use upsert to update role (will replace if exists, insert if not)
-      const { error } = await supabase
+      // First, delete all existing roles for this user
+      const { error: deleteError } = await supabase
         .from("user_roles")
-        .upsert({ user_id: userId, role: newRole }, { 
-          onConflict: 'user_id',
-          ignoreDuplicates: false 
-        });
+        .delete()
+        .eq("user_id", userId);
 
-      if (error) throw error;
+      if (deleteError) throw deleteError;
+
+      // Then insert the new role
+      const { error: insertError } = await supabase
+        .from("user_roles")
+        .insert({ user_id: userId, role: newRole });
+
+      if (insertError) throw insertError;
       
       // Log the activity
       await supabase.from("activity_logs").insert({
@@ -423,10 +428,9 @@ const Admin = () => {
       <nav className="sticky top-0 z-50 border-b border-border/40 backdrop-blur-lg bg-background/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <Button
                 variant="ghost"
-                size="sm"
                 onClick={() => navigate("/")}
                 className="gap-2 hover:bg-accent/10"
               >
@@ -435,7 +439,6 @@ const Admin = () => {
               </Button>
               <Button
                 variant="ghost"
-                size="sm"
                 onClick={() => navigate("/admin")}
                 className="gap-2 bg-accent/10"
               >
@@ -444,7 +447,6 @@ const Admin = () => {
               </Button>
               <Button
                 variant="ghost"
-                size="sm"
                 onClick={() => navigate("/activity-logs")}
                 className="gap-2 hover:bg-accent/10"
               >
@@ -453,7 +455,6 @@ const Admin = () => {
               </Button>
               <Button
                 variant="ghost"
-                size="sm"
                 onClick={() => navigate("/profile")}
                 className="gap-2 hover:bg-accent/10"
               >
@@ -462,11 +463,10 @@ const Admin = () => {
               </Button>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <ThemeToggle />
               <Button
                 variant="outline"
-                size="sm"
                 onClick={handleLogout}
                 className="gap-2"
               >
