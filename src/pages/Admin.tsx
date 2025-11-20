@@ -10,7 +10,8 @@ import { toast } from "sonner";
 import { Loader2, Trash2, FolderOpen, Upload, Plus, Home, Shield, LogOut, UserCircle, AlertCircle, Users, Edit, Activity } from "lucide-react";
 import logoMain from "@/assets/logo-main.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { RoleManagementDialog } from "@/components/RoleManagementDialog";
+import { useActivityLog } from "@/hooks/useActivityLog";
+import { Badge } from "@/components/ui/badge";
 
 interface Category {
   id: string;
@@ -75,9 +76,7 @@ const Admin = () => {
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
   
-  // Role management dialog state
-  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
-  const [selectedUserForRoles, setSelectedUserForRoles] = useState<UserWithRole | null>(null);
+  const { logActivity } = useActivityLog();
 
   // Check authentication and admin status
   useEffect(() => {
@@ -349,39 +348,65 @@ const Admin = () => {
 
   const handleDeleteUser = async (userId: string, userEmail: string) => {
     if (userId === user?.id) {
-      toast.error("لا يمكنك حذف حسابك الخاص");
+      toast.error("لا يمكنك حذف نفسك");
       return;
     }
 
-    if (!confirm(`هل أنت متأكد من حذف المستخدم ${userEmail}؟ هذا الإجراء لا يمكن التراجع عنه.`)) {
-      return;
+    if (window.confirm(`هل أنت متأكد من حذف المستخدم ${userEmail}؟`)) {
+      const { error } = await supabase.functions.invoke('delete-user', {
+        body: { userId }
+      });
+
+      if (error) {
+        console.error('Error deleting user:', error);
+        toast.error("حدث خطأ أثناء حذف المستخدم");
+      } else {
+        await logActivity({
+          actionType: 'delete_user',
+          targetType: 'user',
+          targetId: userId,
+          targetName: userEmail,
+          details: { deleted_user_email: userEmail }
+        });
+
+        toast.success("تم حذف المستخدم بنجاح");
+        fetchUsers();
+        fetchLogs();
+      }
     }
+  };
 
-    setLoading(true);
-    try {
-      const { error } = await supabase.functions.invoke("delete-user", {
-        body: { userId },
-      });
+  const handleDeleteLog = async (logId: string) => {
+    if (window.confirm('هل أنت متأكد من حذف هذا السجل؟')) {
+      const { error } = await supabase
+        .from('activity_logs')
+        .delete()
+        .eq('id', logId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting log:', error);
+        toast.error("حدث خطأ أثناء حذف السجل");
+      } else {
+        toast.success("تم حذف السجل بنجاح");
+        fetchLogs();
+      }
+    }
+  };
 
-      // Log the activity
-      await supabase.from("activity_logs").insert({
-        user_id: user?.id,
-        user_email: user?.email,
-        action_type: "delete_user",
-        target_type: "user",
-        target_id: userId,
-        target_name: userEmail,
-      });
+  const handleDeleteAllLogs = async () => {
+    if (window.confirm('هل أنت متأكد من حذف جميع السجلات؟ هذا الإجراء لا يمكن التراجع عنه!')) {
+      const { error } = await supabase
+        .from('activity_logs')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
 
-      toast.success("تم حذف المستخدم بنجاح");
-      await Promise.all([fetchUsers(), fetchLogs()]);
-    } catch (error: any) {
-      toast.error("فشل في حذف المستخدم");
-      console.error(error);
-    } finally {
-      setLoading(false);
+      if (error) {
+        console.error('Error deleting all logs:', error);
+        toast.error("حدث خطأ أثناء حذف السجلات");
+      } else {
+        toast.success("تم حذف جميع السجلات بنجاح");
+        fetchLogs();
+      }
     }
   };
 
@@ -700,20 +725,11 @@ const Admin = () => {
                         })}
                       </div>
 
-                      {/* Role Management & Delete Buttons */}
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedUserForRoles(userItem);
-                            setRoleDialogOpen(true);
-                          }}
-                          className="flex-1 gap-2"
-                        >
-                          <Shield className="h-4 w-4" />
-                          إدارة الأدوار
-                        </Button>
+                      {/* Role Badge & Delete Button */}
+                      <div className="flex items-center justify-between gap-2">
+                        <Badge variant={userItem.email === "mohamednasrahmed@outlook.com" ? "default" : "secondary"}>
+                          {userItem.email === "mohamednasrahmed@outlook.com" ? "مدير" : "مستخدم"}
+                        </Badge>
                         <Button
                           variant="destructive"
                           size="sm"
@@ -734,20 +750,6 @@ const Admin = () => {
           )}
 
           {/* Role Management Dialog */}
-          {selectedUserForRoles && (
-            <RoleManagementDialog
-              open={roleDialogOpen}
-              onOpenChange={setRoleDialogOpen}
-              userId={selectedUserForRoles.id}
-              userEmail={selectedUserForRoles.email}
-              currentRoles={users.find(u => u.id === selectedUserForRoles.id)?.roles || []}
-              isCurrentUser={selectedUserForRoles.id === user?.id}
-              onRolesUpdated={() => {
-                fetchUsers();
-                fetchLogs();
-              }}
-            />
-          )}
         </div>
 
         {/* Activity Logs */}
@@ -758,7 +760,23 @@ const Admin = () => {
           </h2>
           <Card>
             <CardHeader>
-              <CardTitle>جميع النشاطات</CardTitle>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>جميع النشاطات</CardTitle>
+                  <CardDescription className="mt-1.5">
+                    سجل شامل لكل العمليات على المنصة
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteAllLogs}
+                  className="gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  حذف الكل
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {logs.length === 0 ? (
@@ -772,7 +790,7 @@ const Admin = () => {
                       key={log.id}
                       className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
                     >
-                      {/* Header with action and date */}
+                      {/* Header with action, date, and delete button */}
                       <div className="flex items-start justify-between gap-3 mb-3">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                           <span className="text-2xl flex-shrink-0">{getActionIcon(log.action_type)}</span>
@@ -780,8 +798,18 @@ const Admin = () => {
                             {getActionLabel(log.action_type)}
                           </div>
                         </div>
-                        <div className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
-                          {formatLogDate(log.created_at)}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className="text-xs text-muted-foreground whitespace-nowrap">
+                            {formatLogDate(log.created_at)}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteLog(log.id)}
+                            className="h-8 w-8 p-0 hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
                         </div>
                       </div>
 
