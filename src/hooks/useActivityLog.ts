@@ -23,6 +23,7 @@ export const useActivityLog = () => {
 
       await supabase.from("activity_logs").insert({
         user_id: user.id,
+        user_email: user.email,
         action_type: actionType,
         target_type: targetType,
         target_id: targetId,

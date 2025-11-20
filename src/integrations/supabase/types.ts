@@ -58,6 +58,7 @@ export type Database = {
           target_id: string | null
           target_name: string | null
           target_type: string | null
+          user_email: string | null
           user_id: string | null
         }
         Insert: {
@@ -68,6 +69,7 @@ export type Database = {
           target_id?: string | null
           target_name?: string | null
           target_type?: string | null
+          user_email?: string | null
           user_id?: string | null
         }
         Update: {
@@ -78,6 +80,7 @@ export type Database = {
           target_id?: string | null
           target_name?: string | null
           target_type?: string | null
+          user_email?: string | null
           user_id?: string | null
         }
         Relationships: []
