@@ -366,6 +366,9 @@ const Admin = () => {
       });
 
       toast.success("تم إزالة الدور بنجاح");
+      
+      // Wait a bit for the database to update
+      await new Promise(resolve => setTimeout(resolve, 300));
       await Promise.all([fetchUsers(), fetchLogs()]);
     } catch (error: any) {
       console.error("Error removing role:", error);
@@ -395,6 +398,9 @@ const Admin = () => {
       });
 
       toast.success("تم إضافة الدور بنجاح");
+      
+      // Wait a bit for the database to update
+      await new Promise(resolve => setTimeout(resolve, 300));
       await Promise.all([fetchUsers(), fetchLogs()]);
     } catch (error: any) {
       console.error("Error adding role:", error);
