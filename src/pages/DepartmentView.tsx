@@ -14,6 +14,7 @@ import logoMain from "@/assets/logo-main.png";
 interface Department {
   id: string;
   name: string;
+  slug: string;
   years_count: number;
   has_preparatory: boolean;
 }
@@ -62,7 +63,7 @@ const DepartmentView = () => {
   const fetchDepartments = async () => {
     const { data, error } = await supabase
       .from("departments")
-      .select("*")
+      .select("id, name, slug, years_count, has_preparatory, created_at")
       .order("name");
 
     if (error) {
@@ -167,7 +168,7 @@ const DepartmentView = () => {
             return (
               <Card
                 key={department.id}
-                onClick={() => navigate(`/department/${department.id}/levels`)}
+                onClick={() => navigate(`/department/${department.slug}/levels`)}
                 className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 bg-card/80 backdrop-blur-sm relative"
               >
                 <CardHeader className="space-y-3">
