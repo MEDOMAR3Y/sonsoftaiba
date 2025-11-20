@@ -26,6 +26,7 @@ interface File {
 interface Category {
   id: string;
   name: string;
+  slug?: string;
   description?: string;
 }
 
@@ -40,7 +41,7 @@ interface ParentCategory {
 }
 
 const CategoryFiles = () => {
-  const { categoryId } = useParams();
+  const { categoryId: categorySlug } = useParams();
   const navigate = useNavigate();
   const [category, setCategory] = useState<Category | null>(null);
   const [files, setFiles] = useState<File[]>([]);
@@ -73,17 +74,22 @@ const CategoryFiles = () => {
   };
 
   useEffect(() => {
-    if (categoryId) {
+    if (categorySlug) {
       fetchCategory();
+    }
+  }, [categorySlug]);
+
+  useEffect(() => {
+    if (category) {
       fetchFiles();
     }
-  }, [categoryId]);
+  }, [category]);
 
   const fetchCategory = async () => {
     const { data, error } = await supabase
       .from("categories")
       .select("*")
-      .eq("id", categoryId)
+      .eq("slug", categorySlug)
       .maybeSingle();
 
     if (error) {
@@ -95,10 +101,12 @@ const CategoryFiles = () => {
   };
 
   const fetchFiles = async () => {
+    if (!category?.id) return;
+    
     const { data, error } = await supabase
       .from("files")
       .select("*")
-      .eq("category_id", categoryId)
+      .eq("category_id", category.id)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -117,7 +125,7 @@ const CategoryFiles = () => {
   };
 
   const handleUploadFile = async () => {
-    if (!selectedFile || !categoryId) {
+    if (!selectedFile || !category?.id) {
       toast.error("الرجاء اختيار ملف");
       return;
     }
@@ -132,7 +140,7 @@ const CategoryFiles = () => {
         try {
           const fileExt = file.name.split('.').pop();
           const fileName = `${Math.random()}.${fileExt}`;
-          const filePath = `${categoryId}/${fileName}`;
+          const filePath = `${category.id}/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
             .from('files')
@@ -147,7 +155,7 @@ const CategoryFiles = () => {
               file_path: filePath,
               file_size: file.size,
               mime_type: file.type,
-              category_id: categoryId
+              category_id: category.id
             });
 
           if (dbError) throw dbError;
@@ -226,7 +234,7 @@ const CategoryFiles = () => {
   };
 
   const handleEditCategory = async () => {
-    if (!categoryId || !editData.name.trim()) {
+    if (!category?.id || !editData.name.trim()) {
       toast.error("يرجى إدخال اسم الفئة");
       return;
     }
@@ -239,7 +247,7 @@ const CategoryFiles = () => {
           name: editData.name,
           description: editData.description
         })
-        .eq("id", categoryId);
+        .eq("id", category.id);
 
       if (error) throw error;
 
@@ -255,7 +263,7 @@ const CategoryFiles = () => {
   };
 
   const handleDeleteCategory = async () => {
-    if (!categoryId) return;
+    if (!category?.id) return;
 
     if (!confirm("هل أنت متأكد من حذف هذه الفئة؟ سيتم حذف جميع الملفات المرتبطة بها.")) {
       return;
@@ -267,7 +275,7 @@ const CategoryFiles = () => {
       const { data: files } = await supabase
         .from("files")
         .select("file_path")
-        .eq("category_id", categoryId);
+        .eq("category_id", category.id);
 
       if (files) {
         for (const file of files) {
@@ -276,13 +284,13 @@ const CategoryFiles = () => {
       }
 
       // Delete file records
-      await supabase.from("files").delete().eq("category_id", categoryId);
+      await supabase.from("files").delete().eq("category_id", category.id);
 
       // Delete category
       const { error } = await supabase
         .from("categories")
         .delete()
-        .eq("id", categoryId);
+        .eq("id", category.id);
 
       if (error) throw error;
 
