@@ -154,7 +154,7 @@ const LevelView = () => {
               <ThemeToggle />
               {user ? (
                 <Button
-                  variant="default"
+                  variant="ghost"
                   size="sm"
                   onClick={handleLogout}
                   className="gap-2"
@@ -164,7 +164,7 @@ const LevelView = () => {
                 </Button>
               ) : (
                 <Button
-                  variant="default"
+                  variant="ghost"
                   size="sm"
                   onClick={() => navigate("/auth")}
                   className="gap-2"
