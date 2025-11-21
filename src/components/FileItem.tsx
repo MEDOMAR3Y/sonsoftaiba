@@ -102,7 +102,7 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: Fi
           <div className={`grid gap-2 mt-3 w-full ${isAdmin ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <Button
               size="sm"
-              variant="outline"
+              variant="default"
               onClick={handleView}
               className="gap-1.5 w-full"
             >
@@ -111,7 +111,7 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: Fi
             </Button>
             <Button
               size="sm"
-              variant="outline"
+              variant="default"
               onClick={handleDownload}
               className="gap-1.5 w-full"
             >

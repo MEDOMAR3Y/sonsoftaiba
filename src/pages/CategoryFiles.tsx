@@ -347,7 +347,7 @@ const CategoryFiles = () => {
               <ThemeToggle />
               {user ? (
                 <Button
-                  variant="outline"
+                  variant="default"
                   size="sm"
                   onClick={handleLogout}
                   className="gap-2"
@@ -357,7 +357,7 @@ const CategoryFiles = () => {
                 </Button>
               ) : (
                 <Button
-                  variant="outline"
+                  variant="default"
                   size="sm"
                   onClick={() => navigate("/auth")}
                   className="gap-2"
