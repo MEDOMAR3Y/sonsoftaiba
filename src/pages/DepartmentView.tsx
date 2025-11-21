@@ -124,7 +124,7 @@ const DepartmentView = () => {
               <ThemeToggle />
               {user ? (
                 <Button
-                  variant="outline"
+                  variant="default"
                   size="sm"
                   onClick={handleLogout}
                   className="gap-2"
@@ -134,7 +134,7 @@ const DepartmentView = () => {
                 </Button>
               ) : (
                 <Button
-                  variant="outline"
+                  variant="default"
                   size="sm"
                   onClick={() => navigate("/auth")}
                   className="gap-2"

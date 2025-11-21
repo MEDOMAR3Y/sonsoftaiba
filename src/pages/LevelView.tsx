@@ -154,7 +154,7 @@ const LevelView = () => {
               <ThemeToggle />
               {user ? (
                 <Button
-                  variant="outline"
+                  variant="default"
                   size="sm"
                   onClick={handleLogout}
                   className="gap-2"
@@ -164,7 +164,7 @@ const LevelView = () => {
                 </Button>
               ) : (
                 <Button
-                  variant="outline"
+                  variant="default"
                   size="sm"
                   onClick={() => navigate("/auth")}
                   className="gap-2"
@@ -206,7 +206,7 @@ const LevelView = () => {
               navigator.clipboard.writeText(url);
               toast.success('تم نسخ رابط المستوى');
             }}
-            className="gap-2 animate-pulse hover:animate-none"
+            className="gap-2"
           >
             <Share2 className="h-4 w-4" />
             مشاركة
