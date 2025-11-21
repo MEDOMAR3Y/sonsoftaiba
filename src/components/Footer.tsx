@@ -17,6 +17,15 @@ export const Footer = () => {
               <span className="font-semibold text-foreground">MEDO MAR3Y</span>
             </div>
             <a
+              href="https://chat.whatsapp.com/ISVxK2e63CU6qf6KbMZfhS?mode=wwt"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors"
+            >
+              <MessageCircle className="h-3.5 w-3.5 text-primary" />
+              <span>للتواصل</span>
+            </a>
+            <a
               href="https://wa.me/qr/3DDYB2JNLHGLL1"
               target="_blank"
               rel="noopener noreferrer"
