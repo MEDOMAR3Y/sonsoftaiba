@@ -271,7 +271,7 @@ const SemesterCategories = () => {
         <div className="mb-6 flex items-center justify-between">
           <div className="flex gap-3">
             <Button
-              variant="ghost"
+              variant="default"
               onClick={() => window.history.back()}
               className="gap-2"
             >
