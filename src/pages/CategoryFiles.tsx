@@ -393,10 +393,6 @@ const CategoryFiles = () => {
                 {category.description}
               </p>
             )}
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              {files.length} {files.length === 1 ? 'ملف' : 'ملفات'}
-            </div>
           </div>
         )}
 
