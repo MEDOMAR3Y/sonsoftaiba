@@ -5,14 +5,11 @@ export const Footer = () => {
     <footer className="mt-auto border-t bg-card text-card-foreground">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-2 text-xs sm:text-sm">
-            <span>© جميع الحقوق محفوظة ل</span>
-            <span className="font-bold text-primary">
-              SONS OF TAIBA
-            </span>
-          </div>
-          
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center gap-3 text-xs sm:text-sm flex-wrap">
+            <div className="flex items-center gap-2">
+              <span>© جميع الحقوق محفوظة ل</span>
+              <span className="font-bold text-primary">SONS OF TAIBA</span>
+            </div>
             <a
               href="https://chat.whatsapp.com/ISVxK2e63CU6qf6KbMZfhS?mode=wwt"
               target="_blank"
