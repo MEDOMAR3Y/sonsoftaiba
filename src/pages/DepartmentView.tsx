@@ -174,12 +174,10 @@ const DepartmentView = () => {
                 className="group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50 hover:scale-[1.02] hover:ring-2 hover:ring-primary/20 bg-card/80 backdrop-blur-sm relative"
               >
                 <CardHeader className="space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div className="absolute top-4 right-4 p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-all duration-500">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-all duration-500 shrink-0">
                       <Icon className="h-7 w-7 text-primary group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 drop-shadow-sm" />
                     </div>
-                  </div>
-                  <div className="pt-8">
                     <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300">
                       {department.name}
                     </CardTitle>

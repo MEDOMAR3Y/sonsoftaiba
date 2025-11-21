@@ -225,12 +225,10 @@ const SemesterView = () => {
               className="group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50 hover:scale-[1.02] hover:ring-2 hover:ring-primary/20 bg-card/80 backdrop-blur-sm relative"
             >
               <CardHeader className="space-y-4">
-                <div className="flex items-start justify-between">
-                  <div className="absolute top-4 right-4 w-14 h-14 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-all duration-500 flex items-center justify-center">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-all duration-500 flex items-center justify-center shrink-0">
                     <span className="text-2xl font-bold text-primary group-hover:scale-110 transition-all duration-500 drop-shadow-sm">{semester.semester_number}</span>
                   </div>
-                </div>
-                <div className="pt-8">
                   <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300">
                     {semester.name}
                   </CardTitle>
