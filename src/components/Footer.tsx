@@ -22,10 +22,10 @@ export const Footer = () => {
           </div>
           
           <div className="flex items-center justify-between gap-3 flex-wrap text-xs sm:text-sm">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
+            <div className="flex items-center gap-1.5">
               <Code className="h-3.5 w-3.5 text-primary" />
               <span>تم التطوير بواسطة</span>
-              <span className="font-semibold text-primary">MEDO MAR3Y</span>
+              <span className="font-bold text-primary">MEDO MAR3Y</span>
             </div>
             <a
               href="https://wa.me/qr/3DDYB2JNLHGLL1"
