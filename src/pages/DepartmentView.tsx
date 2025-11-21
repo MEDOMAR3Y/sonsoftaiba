@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Footer } from "@/components/Footer";
 import { toast } from "sonner";
 import { User, Session } from "@supabase/supabase-js";
-import { Home, Shield, LogOut, LogIn, UserCircle, Share2, GraduationCap, Calculator, Briefcase, Users, Laptop, TrendingUp, FileText, Building2, BookOpen } from "lucide-react";
+import { Home, Shield, LogOut, LogIn, UserCircle, Share2, GraduationCap, Calculator, Briefcase, Users, Laptop, TrendingUp, FileText, Building2, BookOpen, Database, ShoppingCart } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import logoMain from "@/assets/logo-main.png";
@@ -33,6 +33,8 @@ const DepartmentView = () => {
     if (lowerName.includes("محاسب") || lowerName.includes("حساب")) return Calculator;
     if (lowerName.includes("إدار") || lowerName.includes("ادار")) return Briefcase;
     if (lowerName.includes("موارد") || lowerName.includes("بشري")) return Users;
+    if (lowerName.includes("نظم") || lowerName.includes("معلومات")) return Database;
+    if (lowerName.includes("تسويق") || lowerName.includes("تجارة")) return ShoppingCart;
     if (lowerName.includes("هندس") || lowerName.includes("تقني") || lowerName.includes("حاسب")) return Laptop;
     if (lowerName.includes("اقتصاد") || lowerName.includes("مالي")) return TrendingUp;
     if (lowerName.includes("تربي") || lowerName.includes("تعليم")) return GraduationCap;
