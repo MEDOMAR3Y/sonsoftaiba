@@ -88,48 +88,50 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: Fi
 
   return (
     <div className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-all">
-      <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-          <FileText className="w-5 h-5 text-primary" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-medium break-words sm:truncate">{name}</p>
-          {fileSize && (
-            <p className="text-sm text-muted-foreground mt-1">{formatFileSize(fileSize)}</p>
-          )}
-          
-          {/* Action Buttons - Below file name */}
-          <div className={`grid gap-2 mt-3 w-full ${isAdmin ? 'grid-cols-3' : 'grid-cols-2'}`}>
-            <Button
-              size="sm"
-              variant="default"
-              onClick={handleView}
-              className="gap-1.5 w-full"
-            >
-              <Eye className="w-4 h-4" />
-              <span>معاينة</span>
-            </Button>
-            <Button
-              size="sm"
-              variant="default"
-              onClick={handleDownload}
-              className="gap-1.5 w-full"
-            >
-              <Download className="w-4 h-4" />
-              <span>تحميل</span>
-            </Button>
-            {isAdmin && (
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={handleDelete}
-                className="gap-1.5 w-full"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>حذف</span>
-              </Button>
+      <div className="flex flex-col gap-3">
+        <div className="flex items-start gap-3">
+          <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+            <FileText className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-medium break-words sm:truncate">{name}</p>
+            {fileSize && (
+              <p className="text-sm text-muted-foreground mt-1">{formatFileSize(fileSize)}</p>
             )}
           </div>
+        </div>
+        
+        {/* Action Buttons - Full Width Grid */}
+        <div className="grid grid-cols-3 gap-2 w-full">
+          <Button
+            size="sm"
+            variant="default"
+            onClick={handleView}
+            className="gap-1.5 w-full"
+          >
+            <Eye className="w-4 h-4" />
+            <span className="hidden sm:inline">معاينة</span>
+          </Button>
+          <Button
+            size="sm"
+            variant="default"
+            onClick={handleDownload}
+            className="gap-1.5 w-full"
+          >
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">تحميل</span>
+          </Button>
+          {isAdmin && (
+            <Button
+              size="sm"
+              variant="default"
+              onClick={handleDelete}
+              className="gap-1.5 w-full"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span className="hidden sm:inline">حذف</span>
+            </Button>
+          )}
         </div>
       </div>
     </div>
