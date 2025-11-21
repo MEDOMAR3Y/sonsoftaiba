@@ -17,17 +17,17 @@ All colors MUST be HSL.
     --popover: 200 55% 94%;
     --popover-foreground: 200 30% 20%;
 
-    --primary: 200 75% 40%;
+    --primary: 142 76% 36%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 200 85% 50%;
+    --primary-glow: 142 86% 46%;
 
-    --secondary: 200 40% 85%;
-    --secondary-foreground: 200 30% 20%;
+    --secondary: 200 75% 40%;
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 200 40% 85%;
     --muted-foreground: 200 25% 35%;
 
-    --accent: 200 75% 40%;
+    --accent: 142 76% 36%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 50%;
@@ -35,26 +35,26 @@ All colors MUST be HSL.
 
     --border: 200 30% 78%;
     --input: 200 30% 78%;
-    --ring: 200 75% 40%;
+    --ring: 142 76% 36%;
 
     --radius: 0.75rem;
     
-    --gradient-primary: linear-gradient(135deg, hsl(200 75% 40%), hsl(200 85% 50%));
-    --gradient-accent: linear-gradient(135deg, hsl(200 75% 40% / 0.08), hsl(200 85% 50% / 0.03));
+    --gradient-primary: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 86% 46%));
+    --gradient-accent: linear-gradient(135deg, hsl(142 76% 36% / 0.08), hsl(142 86% 46% / 0.03));
     --gradient-card: linear-gradient(135deg, hsl(200 55% 94%), hsl(200 50% 90%));
-    --shadow-elegant: 0 10px 30px -5px hsl(200 75% 40% / 0.15);
-    --shadow-hover: 0 20px 40px -10px hsl(200 85% 50% / 0.25);
-    --shadow-glow: 0 0 30px hsl(200 85% 50% / 0.1);
+    --shadow-elegant: 0 10px 30px -5px hsl(142 76% 36% / 0.15);
+    --shadow-hover: 0 20px 40px -10px hsl(142 86% 46% / 0.25);
+    --shadow-glow: 0 0 30px hsl(142 86% 46% / 0.1);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --sidebar-background: 200 55% 94%;
     --sidebar-foreground: 200 30% 30%;
-    --sidebar-primary: 200 75% 40%;
+    --sidebar-primary: 142 76% 36%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 200 40% 85%;
     --sidebar-accent-foreground: 200 30% 20%;
     --sidebar-border: 200 30% 75%;
-    --sidebar-ring: 200 75% 45%;
+    --sidebar-ring: 142 76% 36%;
   }
 
   .dark {
