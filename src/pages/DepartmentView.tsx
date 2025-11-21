@@ -86,7 +86,7 @@ const DepartmentView = () => {
       <nav className="sticky top-0 z-50 border-b border-border/40 backdrop-blur-lg bg-background/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               <Button
                 variant="ghost"
                 size="sm"
@@ -120,7 +120,7 @@ const DepartmentView = () => {
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <ThemeToggle />
               {user ? (
                 <Button
@@ -151,7 +151,7 @@ const DepartmentView = () => {
       {/* Main Content */}
       <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Logo */}
-        <div className="flex justify-center mb-8 sm:mb-12">
+        <div className="flex justify-center mb-10 sm:mb-14">
           <img 
             src={logoMain} 
             alt="SONS OF TAIBA" 
@@ -159,24 +159,24 @@ const DepartmentView = () => {
           />
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-8">
+        <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-10">
           اختر القسم
         </h1>
 
         {/* Departments Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {departments.map((department) => {
             const Icon = getIconForDepartment(department.name);
             return (
               <Card
                 key={department.id}
                 onClick={() => navigate(`/department/${department.slug}/levels`)}
-                className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 bg-card/80 backdrop-blur-sm relative"
+                className="group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50 hover:scale-[1.02] hover:ring-2 hover:ring-primary/20 bg-card/80 backdrop-blur-sm relative"
               >
-                <CardHeader className="space-y-3">
+                <CardHeader className="space-y-4">
                   <div className="flex items-start justify-between">
-                    <div className="absolute top-4 right-4 p-2.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
-                      <Icon className="h-6 w-6 text-primary" />
+                    <div className="absolute top-4 right-4 p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-all duration-500">
+                      <Icon className="h-7 w-7 text-primary group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 drop-shadow-sm" />
                     </div>
                   </div>
                   <div className="pt-8">

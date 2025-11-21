@@ -116,7 +116,7 @@ const LevelView = () => {
       <nav className="sticky top-0 z-50 border-b border-border/40 backdrop-blur-lg bg-background/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               <Button
                 variant="ghost"
                 size="sm"
@@ -150,7 +150,7 @@ const LevelView = () => {
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <ThemeToggle />
               {user ? (
                 <Button
@@ -181,7 +181,7 @@ const LevelView = () => {
       {/* Main Content */}
       <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Logo */}
-        <div className="flex justify-center mb-8 sm:mb-12">
+        <div className="flex justify-center mb-10 sm:mb-14">
           <img 
             src={logoMain} 
             alt="SONS OF TAIBA" 
@@ -189,7 +189,7 @@ const LevelView = () => {
           />
         </div>
 
-        <div className="mb-6 flex justify-between items-center">
+        <div className="mb-10 flex justify-between items-center">
           <Button
             variant="ghost"
             onClick={() => window.history.back()}
@@ -206,7 +206,7 @@ const LevelView = () => {
               navigator.clipboard.writeText(url);
               toast.success('تم نسخ رابط المستوى');
             }}
-            className="gap-2"
+            className="gap-2 animate-pulse hover:animate-none"
           >
             <Share2 className="h-4 w-4" />
             مشاركة
@@ -218,17 +218,17 @@ const LevelView = () => {
         )}
 
         {/* Levels Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {levels.map((level) => (
             <Card
               key={level.id}
               onClick={() => navigate(`/level/${level.slug}/semesters`)}
-              className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/50 hover:-translate-y-1 bg-card/80 backdrop-blur-sm relative"
+              className="group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50 hover:scale-[1.02] hover:ring-2 hover:ring-primary/20 bg-card/80 backdrop-blur-sm relative"
             >
-              <CardHeader className="space-y-3">
+              <CardHeader className="space-y-4">
                 <div className="flex items-start justify-between">
-                  <div className="absolute top-4 right-4 w-12 h-12 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-primary">{level.level_number}</span>
+                  <div className="absolute top-4 right-4 w-14 h-14 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-all duration-500 flex items-center justify-center">
+                    <span className="text-2xl font-bold text-primary group-hover:scale-110 transition-all duration-500 drop-shadow-sm">{level.level_number}</span>
                   </div>
                 </div>
                 <div className="pt-8">
