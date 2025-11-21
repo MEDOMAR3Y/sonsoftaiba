@@ -347,7 +347,7 @@ const CategoryFiles = () => {
               <ThemeToggle />
               {user ? (
                 <Button
-                  variant="default"
+                  variant="ghost"
                   size="sm"
                   onClick={handleLogout}
                   className="gap-2"
@@ -357,7 +357,7 @@ const CategoryFiles = () => {
                 </Button>
               ) : (
                 <Button
-                  variant="default"
+                  variant="ghost"
                   size="sm"
                   onClick={() => navigate("/auth")}
                   className="gap-2"
@@ -384,7 +384,7 @@ const CategoryFiles = () => {
 
         {/* Category Header */}
         {category && (
-          <div className="text-center space-y-4 mb-8">
+          <div className="text-center space-y-4 mb-12">
             <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary via-primary-glow to-primary bg-clip-text text-transparent">
               {category.name}
             </h1>
@@ -397,7 +397,7 @@ const CategoryFiles = () => {
         )}
 
         {/* Action Buttons */}
-        <div className="space-y-2 mb-6">
+        <div className="space-y-2 mb-8">
           {/* Admin Buttons Row */}
           {isAdmin && (
             <div className="grid grid-cols-3 gap-2 w-full">
