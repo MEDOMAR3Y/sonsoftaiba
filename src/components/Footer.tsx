@@ -17,7 +17,7 @@ export const Footer = () => {
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors"
             >
               <MessageCircle className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs">للتواصل</span>
+              <span>للتواصل</span>
             </a>
           </div>
           
