@@ -233,7 +233,7 @@ const SemesterCategories = () => {
               <ThemeToggle />
               {user ? (
                 <Button
-                  variant="outline"
+                  variant="default"
                   size="sm"
                   onClick={handleLogout}
                   className="gap-2"
@@ -243,7 +243,7 @@ const SemesterCategories = () => {
                 </Button>
               ) : (
                 <Button
-                  variant="outline"
+                  variant="default"
                   size="sm"
                   onClick={() => navigate("/auth")}
                   className="gap-2"
@@ -282,7 +282,7 @@ const SemesterCategories = () => {
 
           <div className="flex gap-2">
             <Button 
-              variant="outline" 
+              variant="default" 
               onClick={() => {
                 const url = window.location.href;
                 navigator.clipboard.writeText(url);
