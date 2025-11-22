@@ -120,4 +120,17 @@ All colors MUST be HSL.
   html {
     scroll-behavior: smooth;
   }
+  
+  @keyframes icon-bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+  
+  .icon-animate {
+    animation: icon-bounce 2s ease-in-out infinite;
+  }
 }

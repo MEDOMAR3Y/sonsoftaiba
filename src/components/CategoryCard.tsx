@@ -55,7 +55,7 @@ export const CategoryCard = ({ name, description, fileCount, onClick, department
       <CardHeader className="space-y-4">
         <div className="flex items-center gap-4">
           <div className="p-3 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-all duration-500 shrink-0">
-            <Icon className="h-7 w-7 text-primary group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 drop-shadow-sm" />
+            <Icon className="h-7 w-7 text-primary icon-animate group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 drop-shadow-sm" />
           </div>
           <div className="flex-1">
             <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300">
