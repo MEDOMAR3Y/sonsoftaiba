@@ -189,11 +189,11 @@ const SemesterView = () => {
           />
         </div>
 
-        <div className="mb-10 flex justify-between items-center">
+        <div className="mb-10 flex justify-between items-center gap-4 flex-wrap">
           <Button
             variant="ghost"
             onClick={() => window.history.back()}
-            className="gap-2"
+            className="gap-2 shrink-0"
           >
             <ArrowRight className="h-4 w-4" />
             رجوع
@@ -206,7 +206,7 @@ const SemesterView = () => {
               navigator.clipboard.writeText(url);
               toast.success('تم نسخ رابط الترمات');
             }}
-            className="gap-2"
+            className="gap-2 shrink-0"
           >
             <Share2 className="h-4 w-4" />
             مشاركة
