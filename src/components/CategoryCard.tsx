@@ -50,7 +50,7 @@ export const CategoryCard = ({ name, description, fileCount, onClick, department
     >
       <Card 
         onClick={onClick}
-        className="group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50 hover:ring-2 hover:ring-primary/20 bg-card/80 backdrop-blur-sm relative h-full"
+        className="shimmer-effect group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50 hover:ring-2 hover:ring-primary/20 bg-card/80 backdrop-blur-sm relative h-full"
       >
       <CardHeader className="space-y-4">
         <div className="flex items-center gap-4">
