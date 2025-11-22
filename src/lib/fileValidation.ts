@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-// Maximum file size: 50MB
-const MAX_FILE_SIZE = 50 * 1024 * 1024;
+// Maximum file size: 500MB
+const MAX_FILE_SIZE = 500 * 1024 * 1024;
 
 // Allowed MIME types
 const ALLOWED_MIME_TYPES = [
@@ -41,7 +41,7 @@ const ALLOWED_EXTENSIONS = [
 export const fileValidationSchema = z.object({
   file: z.custom<File>((file) => file instanceof File, "يجب أن يكون ملف صالح")
     .refine((file) => file.size <= MAX_FILE_SIZE, {
-      message: `حجم الملف يجب أن يكون أقل من 50 ميجابايت`
+      message: `حجم الملف يجب أن يكون أقل من 500 ميجابايت`
     })
     .refine((file) => {
       return ALLOWED_MIME_TYPES.includes(file.type);
