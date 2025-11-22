@@ -10,6 +10,7 @@ import { Home, Shield, LogOut, LogIn, UserCircle, Share2, GraduationCap, Calcula
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import logoMain from "@/assets/logo-main.png";
+import { motion } from "framer-motion";
 
 interface Department {
   id: string;
@@ -165,25 +166,35 @@ const DepartmentView = () => {
 
         {/* Departments Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {departments.map((department) => {
+          {departments.map((department, index) => {
             const Icon = getIconForDepartment(department.name);
             return (
-              <Card
+              <motion.div
                 key={department.id}
-                onClick={() => navigate(`/department/${department.slug}/levels`)}
-                className="group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50 hover:scale-[1.02] hover:ring-2 hover:ring-primary/20 bg-card/80 backdrop-blur-sm relative"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  duration: 0.4, 
+                  delay: index * 0.1,
+                  ease: "easeOut" 
+                }}
               >
-                <CardHeader className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-all duration-500 shrink-0">
-                      <Icon className="h-7 w-7 text-primary group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 drop-shadow-sm" />
+                <Card
+                  onClick={() => navigate(`/department/${department.slug}/levels`)}
+                  className="group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50 hover:scale-[1.02] hover:ring-2 hover:ring-primary/20 bg-card/80 backdrop-blur-sm relative h-full"
+                >
+                  <CardHeader className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-all duration-500 shrink-0">
+                        <Icon className="h-7 w-7 text-primary group-hover:rotate-6 group-hover:scale-110 transition-all duration-500 drop-shadow-sm" />
+                      </div>
+                      <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300">
+                        {department.name}
+                      </CardTitle>
                     </div>
-                    <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300">
-                      {department.name}
-                    </CardTitle>
-                  </div>
-                </CardHeader>
-              </Card>
+                  </CardHeader>
+                </Card>
+              </motion.div>
             );
           })}
         </div>

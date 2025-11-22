@@ -10,6 +10,7 @@ import { Home, Shield, LogOut, LogIn, UserCircle, ArrowRight, Calendar, Share2 }
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import logoMain from "@/assets/logo-main.png";
+import { motion } from "framer-motion";
 
 interface Semester {
   id: string;
@@ -218,23 +219,33 @@ const SemesterView = () => {
 
         {/* Semesters Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-          {semesters.map((semester) => (
-            <Card
+          {semesters.map((semester, index) => (
+            <motion.div
               key={semester.id}
-              onClick={() => navigate(`/${semester.slug}/categories`)}
-              className="group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50 hover:scale-[1.02] hover:ring-2 hover:ring-primary/20 bg-card/80 backdrop-blur-sm relative"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ 
+                duration: 0.4, 
+                delay: index * 0.1,
+                ease: "easeOut" 
+              }}
             >
-              <CardHeader className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-all duration-500 flex items-center justify-center shrink-0">
-                    <span className="text-2xl font-bold text-primary group-hover:scale-110 transition-all duration-500 drop-shadow-sm">{semester.semester_number}</span>
+              <Card
+                onClick={() => navigate(`/${semester.slug}/categories`)}
+                className="group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50 hover:scale-[1.02] hover:ring-2 hover:ring-primary/20 bg-card/80 backdrop-blur-sm relative h-full"
+              >
+                <CardHeader className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-all duration-500 flex items-center justify-center shrink-0">
+                      <span className="text-2xl font-bold text-primary group-hover:scale-110 transition-all duration-500 drop-shadow-sm">{semester.semester_number}</span>
+                    </div>
+                    <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300">
+                      {semester.name}
+                    </CardTitle>
                   </div>
-                  <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300">
-                    {semester.name}
-                  </CardTitle>
-                </div>
-              </CardHeader>
-            </Card>
+                </CardHeader>
+              </Card>
+            </motion.div>
           ))}
         </div>
       </div>
