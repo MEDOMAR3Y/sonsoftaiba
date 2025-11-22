@@ -269,19 +269,18 @@ const SemesterCategories = () => {
           />
         </div>
 
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex gap-3">
+        <div className="mb-6 space-y-4">
+          {/* First Row: Back and Share buttons */}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <Button
               variant="default"
               onClick={() => window.history.back()}
-              className="gap-2"
+              className="gap-2 shrink-0"
             >
               <ArrowRight className="h-4 w-4" />
               رجوع
             </Button>
-          </div>
 
-          <div className="flex gap-2">
             <Button 
               variant="default" 
               onClick={() => {
@@ -289,12 +288,16 @@ const SemesterCategories = () => {
                 navigator.clipboard.writeText(url);
                 toast.success('تم نسخ رابط الترم');
               }}
-              className="gap-2"
+              className="gap-2 shrink-0"
             >
               <Share2 className="h-4 w-4" />
               مشاركة
             </Button>
-            {isAdmin && (
+          </div>
+
+          {/* Second Row: Add Category button (admin only) */}
+          {isAdmin && (
+            <div className="flex justify-center">
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="gap-2">
@@ -302,7 +305,7 @@ const SemesterCategories = () => {
                     إضافة فئة جديدة
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="w-[calc(100%-2rem)] max-w-md max-h-[90vh] overflow-y-auto p-4 sm:p-6">
                   <DialogHeader>
                     <DialogTitle>إضافة فئة جديدة</DialogTitle>
                   </DialogHeader>
@@ -342,8 +345,8 @@ const SemesterCategories = () => {
                   </form>
                 </DialogContent>
               </Dialog>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {semester && (
