@@ -11,6 +11,7 @@ import {
   Laptop,
   TrendingUp
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface CategoryCardProps {
   name: string;
@@ -40,10 +41,17 @@ export const CategoryCard = ({ name, description, fileCount, onClick, department
   const Icon = getIconForCategory(name, departmentName);
   
   return (
-    <Card 
-      onClick={onClick}
-      className="group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50 hover:scale-[1.02] hover:ring-2 hover:ring-primary/20 bg-card/80 backdrop-blur-sm relative"
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -20, scale: 0.95 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      whileHover={{ scale: 1.02 }}
     >
+      <Card 
+        onClick={onClick}
+        className="group cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50 hover:ring-2 hover:ring-primary/20 bg-card/80 backdrop-blur-sm relative h-full"
+      >
       <CardHeader className="space-y-4">
         <div className="flex items-center gap-4">
           <div className="p-3 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-all duration-500 shrink-0">
@@ -65,5 +73,6 @@ export const CategoryCard = ({ name, description, fileCount, onClick, department
         </div>
       </CardHeader>
     </Card>
+    </motion.div>
   );
 };
