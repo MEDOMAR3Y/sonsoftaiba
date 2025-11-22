@@ -273,9 +273,9 @@ const SemesterCategories = () => {
           {/* Mobile: Single row, Desktop: Two rows */}
           <div className="flex flex-col md:space-y-4">
             {/* First Row: Back and Share buttons */}
-            <div className="flex items-center justify-between gap-3 flex-wrap mb-3 md:mb-0">
+            <div className="flex items-center justify-between gap-4 flex-wrap mb-3 md:mb-0">
               <Button
-                variant="default"
+                variant="ghost"
                 onClick={() => window.history.back()}
                 className="gap-2 shrink-0"
               >
@@ -301,7 +301,7 @@ const SemesterCategories = () => {
                 {isAdmin && (
                   <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button className="gap-2 md:hidden">
+                      <Button className="gap-2 md:hidden shrink-0">
                         <Plus className="h-4 w-4" />
                         إضافة فئة جديدة
                       </Button>
