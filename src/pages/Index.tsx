@@ -9,6 +9,7 @@ import logoMain from "@/assets/logo-main.png";
 import { Home, Shield, LogOut, LogIn, UserCircle } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { motion } from "framer-motion";
 
 interface Category {
   id: string;
@@ -165,14 +166,24 @@ const Index = () => {
         {/* Categories Grid */}
         {categories.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => (
-              <CategoryCard
+            {categories.map((category, index) => (
+              <motion.div
                 key={category.id}
-                name={category.name}
-                description={category.description}
-                fileCount={fileCounts[category.id] || 0}
-                onClick={() => navigate(`/category/${category.id}`)}
-              />
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  duration: 0.4, 
+                  delay: index * 0.1,
+                  ease: "easeOut" 
+                }}
+              >
+                <CategoryCard
+                  name={category.name}
+                  description={category.description}
+                  fileCount={fileCounts[category.id] || 0}
+                  onClick={() => navigate(`/category/${category.id}`)}
+                />
+              </motion.div>
             ))}
           </div>
         ) : (
