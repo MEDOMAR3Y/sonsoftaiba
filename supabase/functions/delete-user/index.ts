@@ -17,6 +17,49 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Get the calling user from the JWT token
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Authorization required" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 401,
+        }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Invalid token" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 401,
+        }
+      );
+    }
+
+    // Check if calling user is admin
+    const { data: adminCheck, error: roleError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (roleError || !adminCheck) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized: Admin access required" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 403,
+        }
+      );
+    }
+
     const { userId } = await req.json();
 
     if (!userId) {

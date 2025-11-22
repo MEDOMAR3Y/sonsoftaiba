@@ -15,6 +15,7 @@ import { User } from "@supabase/supabase-js";
 import logoMain from "@/assets/logo-main.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { validateFiles } from "@/lib/fileValidation";
 
 interface File {
   id: string;
@@ -127,6 +128,13 @@ const CategoryFiles = () => {
   const handleUploadFile = async () => {
     if (!selectedFile || !category?.id) {
       toast.error("الرجاء اختيار ملف");
+      return;
+    }
+
+    // Validate files
+    const validationResult = validateFiles(selectedFile);
+    if (!validationResult.valid) {
+      validationResult.errors.forEach(error => toast.error(error));
       return;
     }
 

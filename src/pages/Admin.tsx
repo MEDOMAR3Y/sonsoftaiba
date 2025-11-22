@@ -12,6 +12,7 @@ import logoMain from "@/assets/logo-main.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useActivityLog } from "@/hooks/useActivityLog";
 import { Badge } from "@/components/ui/badge";
+import { validateFiles } from "@/lib/fileValidation";
 
 interface Category {
   id: string;
@@ -296,6 +297,13 @@ const Admin = () => {
   const handleUploadFile = async () => {
     if (!selectedFiles || selectedFiles.length === 0 || !selectedCategoryId) {
       toast.error("يرجى اختيار ملف أو أكثر وفئة");
+      return;
+    }
+
+    // Validate files
+    const validationResult = validateFiles(selectedFiles);
+    if (!validationResult.valid) {
+      validationResult.errors.forEach(error => toast.error(error));
       return;
     }
 
