@@ -11,6 +11,7 @@ import { Home, Shield, LogOut, Eye, EyeOff, UserCircle } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { toast } from "sonner";
+import { changePasswordSchema, changeUsernameSchema } from "@/lib/authValidation";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -87,18 +88,14 @@ const Profile = () => {
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!newPassword || !confirmPassword) {
-      toast.error("يرجى ملء جميع الحقول");
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      toast.error("كلمات المرور الجديدة غير متطابقة");
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      toast.error("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+    // Validate password data
+    const validationResult = changePasswordSchema.safeParse({ 
+      newPassword, 
+      confirmPassword 
+    });
+    
+    if (!validationResult.success) {
+      toast.error(validationResult.error.errors[0].message);
       return;
     }
 
@@ -125,13 +122,14 @@ const Profile = () => {
   const handleChangeUsername = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!newUsername.trim()) {
-      toast.error("يرجى إدخال اسم المستخدم الجديد");
-      return;
-    }
-
-    if (!passwordForUsername) {
-      toast.error("يرجى إدخال كلمة المرور للتأكيد");
+    // Validate username data
+    const validationResult = changeUsernameSchema.safeParse({ 
+      username: newUsername, 
+      password: passwordForUsername 
+    });
+    
+    if (!validationResult.success) {
+      toast.error(validationResult.error.errors[0].message);
       return;
     }
 

@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import { toast } from "sonner";
 import { User, Session } from "@supabase/supabase-js";
 import { Lock, Eye, EyeOff } from "lucide-react";
+import { signUpSchema, signInSchema } from "@/lib/authValidation";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -51,8 +52,10 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
-        if (!username.trim()) {
-          toast.error("يرجى إدخال اسم المستخدم");
+        // Validate signup data
+        const validationResult = signUpSchema.safeParse({ email, password, username });
+        if (!validationResult.success) {
+          toast.error(validationResult.error.errors[0].message);
           setLoading(false);
           return;
         }
@@ -71,6 +74,14 @@ const Auth = () => {
         toast.success("تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن");
         setIsSignUp(false);
       } else {
+        // Validate signin data
+        const validationResult = signInSchema.safeParse({ email, password });
+        if (!validationResult.success) {
+          toast.error(validationResult.error.errors[0].message);
+          setLoading(false);
+          return;
+        }
+        
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
