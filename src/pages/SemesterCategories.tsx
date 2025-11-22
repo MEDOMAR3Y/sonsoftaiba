@@ -272,15 +272,17 @@ const SemesterCategories = () => {
         <div className="mb-6">
           {/* Mobile & Desktop: Two rows */}
           <div className="flex flex-col space-y-4">
-            {/* First Row: Back button only */}
-            <Button
-              variant="ghost"
-              onClick={() => window.history.back()}
-              className="gap-2 w-full"
-            >
-              <ArrowRight className="h-4 w-4" />
-              رجوع
-            </Button>
+            {/* First Row: Back button on the side */}
+            <div className="flex">
+              <Button
+                variant="ghost"
+                onClick={() => window.history.back()}
+                className="gap-2"
+              >
+                <ArrowRight className="h-4 w-4" />
+                رجوع
+              </Button>
+            </div>
 
             {/* Second Row: Share and Add Category buttons - Full width */}
             {isAdmin ? (
