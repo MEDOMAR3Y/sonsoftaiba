@@ -500,7 +500,6 @@ const CategoryFiles = () => {
           {/* General Buttons Row */}
           <div className={`grid gap-2 w-full ${files.length > 0 ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <Button 
-              variant="ghost" 
               onClick={() => window.history.back()} 
               className="gap-2 w-full"
             >

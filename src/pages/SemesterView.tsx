@@ -191,7 +191,6 @@ const SemesterView = () => {
 
         <div className="mb-10 flex justify-between items-center gap-4 flex-wrap">
           <Button
-            variant="ghost"
             onClick={() => window.history.back()}
             className="gap-2 shrink-0"
           >
