@@ -4,11 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { FileItem } from "@/components/FileItem";
 import { Footer } from "@/components/Footer";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { SkeletonCard } from "@/components/Skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowRight, Download, Share2, Home, Shield, LogOut, LogIn, Upload, Edit, Trash2 } from "lucide-react";
+import { ArrowRight, Download, Share2, Home, Shield, LogOut, LogIn, Upload, Edit, Trash2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import JSZip from "jszip";
 import { User } from "@supabase/supabase-js";
@@ -16,6 +18,7 @@ import logoMain from "@/assets/logo-main.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { validateFiles } from "@/lib/fileValidation";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 interface File {
   id: string;
@@ -54,6 +57,20 @@ const CategoryFiles = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editData, setEditData] = useState<EditCategoryData>({ name: '', description: '' });
+  const [isLoading, setIsLoading] = useState(true);
+  const [semesterName, setSemesterName] = useState<string>("");
+
+  const handleRefresh = async () => {
+    setIsLoading(true);
+    await Promise.all([fetchCategory(), category ? fetchFiles() : Promise.resolve()]);
+    setIsLoading(false);
+    toast.success("تم تحديث البيانات");
+  };
+
+  const { isPulling, isRefreshing, pullDistance, shouldShowIndicator } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    threshold: 80,
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -76,15 +93,31 @@ const CategoryFiles = () => {
 
   useEffect(() => {
     if (categorySlug) {
+      setIsLoading(true);
       fetchCategory();
     }
   }, [categorySlug]);
 
   useEffect(() => {
     if (category) {
-      fetchFiles();
+      fetchFiles().finally(() => setIsLoading(false));
+      fetchSemesterName();
     }
   }, [category]);
+
+  const fetchSemesterName = async () => {
+    if (!category) return;
+    
+    const { data, error } = await supabase
+      .from("categories")
+      .select("semesters(name, slug)")
+      .eq("id", category.id)
+      .single();
+
+    if (!error && data) {
+      setSemesterName(data.semesters?.name || "");
+    }
+  };
 
   const fetchCategory = async () => {
     const { data, error } = await supabase
@@ -381,6 +414,21 @@ const CategoryFiles = () => {
 
       {/* Main Content */}
       <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {/* Pull to Refresh Indicator */}
+        {shouldShowIndicator && (
+          <div 
+            className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300"
+            style={{ 
+              opacity: isRefreshing ? 1 : pullDistance / 80,
+              transform: `translateX(-50%) translateY(${Math.min(pullDistance / 2, 40)}px)`
+            }}
+          >
+            <div className="bg-card border border-border rounded-full p-3 shadow-lg">
+              <RefreshCw className={`w-5 h-5 text-primary ${isRefreshing ? 'animate-spin' : ''}`} />
+            </div>
+          </div>
+        )}
+
         {/* Logo */}
         <div className="flex justify-center mb-8 sm:mb-12">
           <img 
@@ -389,6 +437,17 @@ const CategoryFiles = () => {
             className="h-32 sm:h-40 w-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-300"
           />
         </div>
+
+        {/* Breadcrumbs */}
+        {category && semesterName && (
+          <Breadcrumbs 
+            items={[
+              { label: "الرئيسية", href: "/" },
+              { label: semesterName, href: `/${semesterSlug}` },
+              { label: category.name }
+            ]}
+          />
+        )}
 
         {/* Category Header */}
         {category && (
@@ -576,7 +635,13 @@ const CategoryFiles = () => {
 
         {/* Files List */}
         <div className="space-y-4">
-          {files.length === 0 ? (
+          {isLoading ? (
+            <>
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+            </>
+          ) : files.length === 0 ? (
             <div className="text-center py-16 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/50 mb-4">
                 <Download className="w-8 h-8 text-muted-foreground" />
