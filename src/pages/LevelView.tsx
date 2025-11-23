@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Footer } from "@/components/Footer";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { toast } from "sonner";
 import { User, Session } from "@supabase/supabase-js";
 import { Home, Shield, LogOut, LogIn, UserCircle, ArrowRight, BookOpen, Share2 } from "lucide-react";
@@ -189,6 +190,16 @@ const LevelView = () => {
             className="h-32 sm:h-40 w-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-300"
           />
         </div>
+
+        {/* Breadcrumbs */}
+        {department && (
+          <Breadcrumbs 
+            items={[
+              { label: "الرئيسية", href: "/" },
+              { label: department.name }
+            ]}
+          />
+        )}
 
         <div className="mb-10 flex justify-between items-center">
           <Button
