@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Eye, Trash2, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 interface FileItemProps {
   id: string;
@@ -87,7 +88,12 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: Fi
   };
 
   return (
-    <div className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-all">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-all"
+    >
       <div className="flex flex-col gap-3">
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-lg bg-primary/10 shrink-0">
@@ -134,6 +140,6 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: Fi
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
