@@ -16,6 +16,7 @@ import logoMain from "@/assets/logo-main.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { validateFiles } from "@/lib/fileValidation";
+import { motion } from "framer-motion";
 
 interface File {
   id: string;
@@ -575,7 +576,18 @@ const CategoryFiles = () => {
         </div>
 
         {/* Files List */}
-        <div className="space-y-4">
+        <motion.div 
+          className="space-y-4"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: {
+              transition: {
+                staggerChildren: 0.1
+              }
+            }
+          }}
+        >
           {files.length === 0 ? (
             <div className="text-center py-16 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/50 mb-4">
@@ -596,7 +608,7 @@ const CategoryFiles = () => {
               />
             ))
           )}
-        </div>
+        </motion.div>
       </div>
       <Footer />
     </div>
