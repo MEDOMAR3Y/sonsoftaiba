@@ -433,7 +433,7 @@ const CategoryFiles = () => {
                     <span>رفع</span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
                   <DialogHeader>
                     <DialogTitle>رفع ملفات جديدة</DialogTitle>
                   </DialogHeader>
@@ -448,32 +448,51 @@ const CategoryFiles = () => {
                         accept="*/*"
                         multiple
                       />
-                      {selectedFile && (
-                        <p className="text-sm text-muted-foreground">
-                          تم اختيار {selectedFile.length} ملف
-                        </p>
-                      )}
                     </div>
-                      <div className="flex gap-2 justify-end">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setIsUploadDialogOpen(false);
-                            setSelectedFile(null);
-                          }}
-                        >
-                          إلغاء
-                        </Button>
-                        <Button 
-                          onClick={handleUploadFile} 
-                          disabled={!selectedFile || isUploading}
-                        >
-                          {isUploading ? "جاري الرفع..." : "رفع"}
-                        </Button>
+                    
+                    {selectedFile && selectedFile.length > 0 && (
+                      <div className="space-y-3 border rounded-lg p-4 bg-muted/20">
+                        <h3 className="font-semibold text-sm">الملفات المختارة ({selectedFile.length})</h3>
+                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                          {Array.from(selectedFile).map((file, index) => (
+                            <div key={index} className="flex items-center justify-between p-3 bg-background rounded-md border">
+                              <div className="flex-1 min-w-0 ml-3">
+                                <p className="text-sm font-medium truncate">{file.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {(file.size / 1024 / 1024).toFixed(2)} ميجابايت
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
+                    )}
+
+                    <div className="flex gap-2 w-full">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setIsUploadDialogOpen(false);
+                          setSelectedFile(null);
+                          if (fileInputRef.current) {
+                            fileInputRef.current.value = '';
+                          }
+                        }}
+                        className="flex-1"
+                      >
+                        إلغاء
+                      </Button>
+                      <Button 
+                        onClick={handleUploadFile} 
+                        disabled={!selectedFile || isUploading}
+                        className="flex-1"
+                      >
+                        {isUploading ? "جاري الرفع..." : "تأكيد الرفع"}
+                      </Button>
                     </div>
-                  </DialogContent>
+                  </div>
+                </DialogContent>
                 </Dialog>
             </div>
           )}
