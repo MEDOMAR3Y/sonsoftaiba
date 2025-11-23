@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Download, Eye, Trash2, FileText } from "lucide-react";
+import { Download, Eye, Trash2, FileText, Image, FileVideo, FileType, File } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -20,6 +20,35 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete, inde
     const mb = bytes / (1024 * 1024);
     return mb < 1 ? `${(bytes / 1024).toFixed(1)} KB` : `${mb.toFixed(1)} MB`;
   };
+
+  const getFileIcon = (fileName: string) => {
+    const extension = fileName.toLowerCase().split('.').pop();
+    
+    // Image files
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico'].includes(extension || '')) {
+      return Image;
+    }
+    
+    // Video files
+    if (['mp4', 'webm', 'ogg', 'avi', 'mov', 'mkv', 'flv', 'wmv'].includes(extension || '')) {
+      return FileVideo;
+    }
+    
+    // PDF files
+    if (extension === 'pdf') {
+      return FileText;
+    }
+    
+    // Office/Word files
+    if (['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'odt', 'ods', 'odp'].includes(extension || '')) {
+      return FileType;
+    }
+    
+    // Default icon for other files
+    return File;
+  };
+
+  const FileIcon = getFileIcon(name);
 
 
   const handleView = async () => {
@@ -102,7 +131,7 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete, inde
       <div className="flex flex-col gap-3">
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-            <FileText className="w-5 h-5 text-primary" />
+            <FileIcon className="w-5 h-5 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-medium break-words sm:truncate">{name}</p>
