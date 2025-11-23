@@ -296,7 +296,7 @@ const SemesterCategories = () => {
                 <DialogTrigger asChild>
                   <Button className="gap-2">
                     <Plus className="h-4 w-4" />
-                    إضافة فئة جديدة
+                    إضافة
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="w-[calc(100%-2rem)] max-w-md max-h-[90vh] overflow-y-auto p-4 sm:p-6">
