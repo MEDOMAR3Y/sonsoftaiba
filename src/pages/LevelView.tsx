@@ -192,7 +192,6 @@ const LevelView = () => {
 
         <div className="mb-10 flex justify-between items-center">
           <Button
-            variant="ghost"
             onClick={() => window.history.back()}
             className="gap-2"
           >
