@@ -59,6 +59,8 @@ const CategoryFiles = () => {
   const [editData, setEditData] = useState<EditCategoryData>({ name: '', description: '' });
   const [isLoading, setIsLoading] = useState(true);
   const [semesterName, setSemesterName] = useState<string>("");
+  const [levelName, setLevelName] = useState<string>("");
+  const [departmentName, setDepartmentName] = useState<string>("");
 
   const handleRefresh = async () => {
     setIsLoading(true);
@@ -110,12 +112,23 @@ const CategoryFiles = () => {
     
     const { data, error } = await supabase
       .from("categories")
-      .select("semesters(name, slug)")
+      .select(`
+        semesters(
+          name, 
+          slug,
+          academic_levels(
+            name,
+            departments(name)
+          )
+        )
+      `)
       .eq("id", category.id)
       .single();
 
     if (!error && data) {
       setSemesterName(data.semesters?.name || "");
+      setLevelName(data.semesters?.academic_levels?.name || "");
+      setDepartmentName(data.semesters?.academic_levels?.departments?.name || "");
     }
   };
 
@@ -439,10 +452,12 @@ const CategoryFiles = () => {
         </div>
 
         {/* Breadcrumbs */}
-        {category && semesterName && (
+        {category && semesterName && levelName && departmentName && (
           <Breadcrumbs 
             items={[
               { label: "الرئيسية", href: "/" },
+              { label: departmentName },
+              { label: levelName },
               { label: semesterName, href: `/${semesterSlug}` },
               { label: category.name }
             ]}

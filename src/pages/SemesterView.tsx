@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Footer } from "@/components/Footer";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { toast } from "sonner";
 import { User, Session } from "@supabase/supabase-js";
 import { Home, Shield, LogOut, LogIn, UserCircle, ArrowRight, Calendar, Share2 } from "lucide-react";
@@ -48,6 +49,7 @@ const SemesterView = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const { isAdmin } = useIsAdmin(user);
+  const [departmentName, setDepartmentName] = useState<string>("");
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
@@ -72,8 +74,23 @@ const SemesterView = () => {
   useEffect(() => {
     if (level) {
       fetchSemesters();
+      fetchDepartmentName();
     }
   }, [level]);
+
+  const fetchDepartmentName = async () => {
+    if (!level) return;
+    
+    const { data, error } = await supabase
+      .from("academic_levels")
+      .select("departments(name)")
+      .eq("id", level.id)
+      .single();
+
+    if (!error && data) {
+      setDepartmentName(data.departments?.name || "");
+    }
+  };
 
   const fetchLevel = async () => {
     const { data, error } = await supabase
@@ -188,6 +205,17 @@ const SemesterView = () => {
             className="h-32 sm:h-40 w-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-300"
           />
         </div>
+
+        {/* Breadcrumbs */}
+        {level && departmentName && (
+          <Breadcrumbs 
+            items={[
+              { label: "الرئيسية", href: "/" },
+              { label: departmentName },
+              { label: getLevelName(level.level_number) }
+            ]}
+          />
+        )}
 
         <div className="mb-10 flex justify-between items-center gap-4 flex-wrap">
           <Button
