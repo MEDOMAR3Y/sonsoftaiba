@@ -17,11 +17,13 @@ import { validateFiles } from "@/lib/fileValidation";
 interface Category {
   id: string;
   name: string;
+  slug?: string;
   description?: string;
   parent_id?: string | null;
   semester_id?: string | null;
   semester_name?: string;
   semester_number?: number;
+  semester_slug?: string;
   level_name?: string;
   level_number?: number;
   department_name?: string;
@@ -152,6 +154,7 @@ const Admin = () => {
         *,
         semesters!inner (
           name,
+          slug,
           semester_number,
           academic_levels!inner (
             name,
@@ -172,10 +175,12 @@ const Admin = () => {
       const transformedData = (data || []).map((cat: any) => ({
         id: cat.id,
         name: cat.name,
+        slug: cat.slug,
         description: cat.description,
         parent_id: cat.parent_id,
         semester_id: cat.semester_id,
         semester_name: cat.semesters?.name,
+        semester_slug: cat.semesters?.slug,
         semester_number: cat.semesters?.semester_number,
         level_name: cat.semesters?.academic_levels?.name,
         level_number: cat.semesters?.academic_levels?.level_number,
@@ -508,7 +513,7 @@ const Admin = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => navigate(`/category/${category.id}`)}
+                          onClick={() => navigate(`/${category.semester_slug}/categories/${category.slug || category.id}`)}
                           className="w-full gap-2"
                         >
                           <FolderOpen className="h-4 w-4" />
@@ -545,7 +550,7 @@ const Admin = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => navigate(`/category/${subCategory.id}`)}
+                                onClick={() => navigate(`/${subCategory.semester_slug}/categories/${subCategory.slug || subCategory.id}`)}
                                 className="w-full gap-2 h-8 text-xs"
                               >
                                 <FolderOpen className="h-3 w-3" />
