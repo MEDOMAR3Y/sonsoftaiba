@@ -11,9 +11,10 @@ interface FileItemProps {
   fileSize?: number;
   isAdmin: boolean;
   onDelete?: () => void;
+  index?: number;
 }
 
-export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: FileItemProps) => {
+export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete, index = 0 }: FileItemProps) => {
   const formatFileSize = (bytes?: number) => {
     if (!bytes) return '';
     const mb = bytes / (1024 * 1024);
@@ -91,7 +92,11 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete }: Fi
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ 
+        duration: 0.4, 
+        delay: index * 0.1,
+        ease: "easeOut" 
+      }}
       className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-all"
     >
       <div className="flex flex-col gap-3">
