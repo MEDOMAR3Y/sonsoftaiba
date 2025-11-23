@@ -16,7 +16,6 @@ import logoMain from "@/assets/logo-main.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { validateFiles } from "@/lib/fileValidation";
-import PageTransition from "@/components/PageTransition";
 
 interface File {
   id: string;
@@ -324,8 +323,7 @@ const CategoryFiles = () => {
   };
 
   return (
-    <PageTransition>
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
       {/* Navigation Bar */}
       <nav className="sticky top-0 z-50 border-b border-border/40 backdrop-blur-lg bg-background/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -602,7 +600,6 @@ const CategoryFiles = () => {
       </div>
       <Footer />
     </div>
-    </PageTransition>
   );
 };
 
