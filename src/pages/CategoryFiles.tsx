@@ -16,7 +16,6 @@ import logoMain from "@/assets/logo-main.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { validateFiles } from "@/lib/fileValidation";
-import { motion } from "framer-motion";
 
 interface File {
   id: string;
@@ -576,18 +575,7 @@ const CategoryFiles = () => {
         </div>
 
         {/* Files List */}
-        <motion.div 
-          className="space-y-4"
-          initial="hidden"
-          animate="visible"
-          variants={{
-            visible: {
-              transition: {
-                staggerChildren: 0.1
-              }
-            }
-          }}
-        >
+        <div className="space-y-4">
           {files.length === 0 ? (
             <div className="text-center py-16 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/50 mb-4">
@@ -596,7 +584,7 @@ const CategoryFiles = () => {
               <p className="text-muted-foreground">لا توجد ملفات في هذه الفئة</p>
             </div>
           ) : (
-            files.map((file) => (
+            files.map((file, index) => (
               <FileItem
                 key={file.id}
                 id={file.id}
@@ -605,10 +593,11 @@ const CategoryFiles = () => {
                 fileSize={file.file_size}
                 isAdmin={isAdmin}
                 onDelete={fetchFiles}
+                index={index}
               />
             ))
           )}
-        </motion.div>
+        </div>
       </div>
       <Footer />
     </div>
