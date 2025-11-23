@@ -393,7 +393,7 @@ const Admin = () => {
             <Button onClick={() => navigate("/")} className="w-full">
               العودة إلى الصفحة الرئيسية
             </Button>
-            <Button onClick={handleLogout} variant="outline" className="w-full">
+            <Button onClick={handleLogout} className="w-full">
               تسجيل الخروج
             </Button>
           </CardContent>
@@ -438,7 +438,6 @@ const Admin = () => {
             <div className="flex items-center gap-2">
               <ThemeToggle />
               <Button
-                variant="outline"
                 onClick={handleLogout}
                 className="gap-2"
               >

@@ -267,7 +267,6 @@ const Profile = () => {
             <div className="flex items-center gap-3">
               <ThemeToggle />
               <Button
-                variant="outline"
                 size="sm"
                 onClick={handleLogout}
                 className="gap-2"

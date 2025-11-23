@@ -270,103 +270,103 @@ const SemesterCategories = () => {
         </div>
 
         <div className="mb-6">
-          {/* Mobile & Desktop: Two rows */}
-          <div className="flex flex-col space-y-4">
-            {/* First Row: Back button on the side */}
-            <div className="flex">
+          {isAdmin ? (
+            <div className="grid grid-cols-3 gap-4">
               <Button
-                variant="ghost"
                 onClick={() => window.history.back()}
                 className="gap-2"
               >
                 <ArrowRight className="h-4 w-4" />
                 رجوع
               </Button>
-            </div>
 
-            {/* Second Row: Share and Add Category buttons - Full width */}
-            {isAdmin ? (
-              <div className="grid grid-cols-2 gap-4">
-                <Button 
-                  variant="default" 
-                  onClick={() => {
-                    const url = window.location.href;
-                    navigator.clipboard.writeText(url);
-                    toast.success('تم نسخ رابط الترم');
-                  }}
-                  className="gap-2 w-full"
-                >
-                  <Share2 className="h-4 w-4" />
-                  مشاركة
-                </Button>
-
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="gap-2 w-full">
-                      <Plus className="h-4 w-4" />
-                      إضافة فئة جديدة
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="w-[calc(100%-2rem)] max-w-md max-h-[90vh] overflow-y-auto p-4 sm:p-6">
-                    <DialogHeader>
-                      <DialogTitle>إضافة فئة جديدة</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleCreateCategory} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">اسم الفئة (المادة)</Label>
-                        <Input
-                          id="name"
-                          value={newCategoryName}
-                          onChange={(e) => setNewCategoryName(e.target.value)}
-                          placeholder="مثال: برمجة 1، رياضيات 2، إلخ"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="description">الوصف (اختياري)</Label>
-                        <Textarea
-                          id="description"
-                          value={newCategoryDescription}
-                          onChange={(e) => setNewCategoryDescription(e.target.value)}
-                          placeholder="وصف المادة"
-                          rows={3}
-                        />
-                      </div>
-                      <div className="flex gap-2 justify-end">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setIsDialogOpen(false);
-                            setNewCategoryName('');
-                            setNewCategoryDescription('');
-                          }}
-                        >
-                          إلغاء
-                        </Button>
-                        <Button type="submit" disabled={isCreating}>
-                          {isCreating ? "جاري الإنشاء..." : "إنشاء"}
-                        </Button>
-                      </div>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            ) : (
               <Button 
-                variant="default" 
                 onClick={() => {
                   const url = window.location.href;
                   navigator.clipboard.writeText(url);
                   toast.success('تم نسخ رابط الترم');
                 }}
-                className="gap-2 w-full"
+                className="gap-2"
               >
                 <Share2 className="h-4 w-4" />
                 مشاركة
               </Button>
-            )}
-          </div>
+
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    إضافة فئة جديدة
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="w-[calc(100%-2rem)] max-w-md max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+                  <DialogHeader>
+                    <DialogTitle>إضافة فئة جديدة</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleCreateCategory} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">اسم الفئة (المادة)</Label>
+                      <Input
+                        id="name"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        placeholder="مثال: برمجة 1، رياضيات 2، إلخ"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="description">الوصف (اختياري)</Label>
+                      <Textarea
+                        id="description"
+                        value={newCategoryDescription}
+                        onChange={(e) => setNewCategoryDescription(e.target.value)}
+                        placeholder="وصف المادة"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setIsDialogOpen(false);
+                          setNewCategoryName('');
+                          setNewCategoryDescription('');
+                        }}
+                      >
+                        إلغاء
+                      </Button>
+                      <Button type="submit" disabled={isCreating}>
+                        {isCreating ? "جاري الإنشاء..." : "إنشاء"}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                onClick={() => window.history.back()}
+                className="gap-2"
+              >
+                <ArrowRight className="h-4 w-4" />
+                رجوع
+              </Button>
+
+              <Button 
+                onClick={() => {
+                  const url = window.location.href;
+                  navigator.clipboard.writeText(url);
+                  toast.success('تم نسخ رابط الترم');
+                }}
+                className="gap-2"
+              >
+                <Share2 className="h-4 w-4" />
+                مشاركة
+              </Button>
+            </div>
+          )}
         </div>
 
         {semester && (

@@ -128,7 +128,6 @@ const Index = () => {
               <ThemeToggle />
               {user ? (
                 <Button
-                  variant="outline"
                   size="sm"
                   onClick={handleLogout}
                   className="gap-2"
@@ -138,7 +137,6 @@ const Index = () => {
                 </Button>
               ) : (
                 <Button
-                  variant="outline"
                   size="sm"
                   onClick={() => navigate("/auth")}
                   className="gap-2"
