@@ -3,19 +3,22 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { SkeletonCard } from "@/components/Skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Footer } from "@/components/Footer";
 import { User, Session } from "@supabase/supabase-js";
-import { Home, Shield, LogOut, LogIn, UserCircle, ArrowRight, Folder, Plus, Share2 } from "lucide-react";
+import { Home, Shield, LogOut, LogIn, UserCircle, ArrowRight, Folder, Plus, Share2, RefreshCw } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { toast } from "sonner";
 import { CategoryCard } from "@/components/CategoryCard";
 import logoMain from "@/assets/logo-main.png";
 import { motion } from "framer-motion";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 interface Category {
   id: string;
@@ -44,6 +47,25 @@ const SemesterCategories = () => {
   const [newCategoryDescription, setNewCategoryDescription] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [fileCounts, setFileCounts] = useState<Record<string, number>>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [levelName, setLevelName] = useState<string>("");
+  const [departmentName, setDepartmentName] = useState<string>("");
+
+  const handleRefresh = async () => {
+    setIsLoading(true);
+    await Promise.all([
+      fetchSemester(), 
+      semester ? fetchCategories() : Promise.resolve(),
+      semester ? fetchFileCounts() : Promise.resolve()
+    ]);
+    setIsLoading(false);
+    toast.success("تم تحديث البيانات");
+  };
+
+  const { isPulling, isRefreshing, pullDistance, shouldShowIndicator } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    threshold: 80,
+  });
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
@@ -61,16 +83,33 @@ const SemesterCategories = () => {
 
   useEffect(() => {
     if (semesterSlug) {
+      setIsLoading(true);
       fetchSemester();
     }
   }, [semesterSlug]);
 
   useEffect(() => {
     if (semester) {
-      fetchCategories();
-      fetchFileCounts();
+      Promise.all([fetchCategories(), fetchFileCounts(), fetchLevelAndDepartmentNames()]).finally(() => 
+        setIsLoading(false)
+      );
     }
   }, [semester]);
+
+  const fetchLevelAndDepartmentNames = async () => {
+    if (!semester) return;
+    
+    const { data, error } = await supabase
+      .from("semesters")
+      .select("academic_levels(name, departments(name))")
+      .eq("id", semester.id)
+      .single();
+
+    if (!error && data) {
+      setLevelName(data.academic_levels?.name || "");
+      setDepartmentName(data.academic_levels?.departments?.name || "");
+    }
+  };
 
   const fetchSemester = async () => {
     const { data, error } = await supabase
@@ -260,6 +299,21 @@ const SemesterCategories = () => {
 
       {/* Main Content */}
       <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {/* Pull to Refresh Indicator */}
+        {shouldShowIndicator && (
+          <div 
+            className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300"
+            style={{ 
+              opacity: isRefreshing ? 1 : pullDistance / 80,
+              transform: `translateX(-50%) translateY(${Math.min(pullDistance / 2, 40)}px)`
+            }}
+          >
+            <div className="bg-card border border-border rounded-full p-3 shadow-lg">
+              <RefreshCw className={`w-5 h-5 text-primary ${isRefreshing ? 'animate-spin' : ''}`} />
+            </div>
+          </div>
+        )}
+
         {/* Logo */}
         <div className="flex justify-center mb-8 sm:mb-12">
           <img 
@@ -268,6 +322,18 @@ const SemesterCategories = () => {
             className="h-32 sm:h-40 w-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-300"
           />
         </div>
+
+        {/* Breadcrumbs */}
+        {semester && departmentName && levelName && (
+          <Breadcrumbs 
+            items={[
+              { label: "الرئيسية", href: "/" },
+              { label: departmentName },
+              { label: levelName },
+              { label: semester.name }
+            ]}
+          />
+        )}
 
         <div className="mb-6">
           {isAdmin ? (
@@ -374,7 +440,16 @@ const SemesterCategories = () => {
         )}
 
         {/* Categories Grid */}
-        {categories.length > 0 ? (
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : categories.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {categories.map((category, index) => (
               <CategoryCard

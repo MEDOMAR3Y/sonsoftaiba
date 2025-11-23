@@ -126,7 +126,7 @@ export const FileItem = ({ id, name, filePath, fileSize, isAdmin, onDelete, inde
         delay: index * 0.1,
         ease: "easeOut" 
       }}
-      className="p-4 rounded-lg bg-card border border-border hover:border-primary/50 transition-all"
+      className="p-4 rounded-lg bg-card border border-border card-glow"
     >
       <div className="flex flex-col gap-3">
         <div className="flex items-start gap-3">
